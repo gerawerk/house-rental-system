@@ -1,6 +1,5 @@
 import { message } from 'antd';
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Button, Form, Modal, Col, Row, FloatingLabel, Card, Container, Spinner } from 'react-bootstrap';
 import { FaEdit, FaTrash, FaHome } from 'react-icons/fa';
 import api from '../../../services/api';

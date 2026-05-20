@@ -1,9 +1,9 @@
-import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import { Button, Card, Modal, Carousel, Col, Form, InputGroup, Row, Container, Badge, Spinner } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { message } from 'antd';
 import { FaHome } from 'react-icons/fa';
+import api from '../../services/api';
 
 const AllPropertiesCards = ({ loggedIn }) => {
    const [index, setIndex] = useState(0);
@@ -33,7 +33,7 @@ const AllPropertiesCards = ({ loggedIn }) => {
 
    const getAllProperties = async () => {
       try {
-         const res = await axios.get('http://localhost:8000/api/user/getAllProperties');
+         const res = await api.get('/user/getAllProperties');
          setAllProperties(res.data.data);
       } catch (error) {
          console.log(error);
@@ -44,12 +44,8 @@ const AllPropertiesCards = ({ loggedIn }) => {
 
    const handleBooking = async (status, propertyId, ownerId) => {
       try {
-         await axios.post(`http://localhost:8000/api/user/bookinghandle/${propertyId}`, { userDetails, status, ownerId }, {
-            headers: {
-               Authorization: `Bearer ${localStorage.getItem('token')}`
-            }
-         })
-            .then((res) => {
+      await api.post(`/user/bookinghandle/${propertyId}`, { userDetails, status, ownerId })
+       .then((res) => {
                if (res.data.success) {
                   message.success(res.data.message);
                   handleClose();

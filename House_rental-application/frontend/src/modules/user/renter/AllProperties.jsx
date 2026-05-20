@@ -1,6 +1,5 @@
 import { message } from 'antd';
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Table, Badge, Container, Spinner, Alert } from 'react-bootstrap';
 import { Button } from 'react-bootstrap';
 import api from '../../../services/api';

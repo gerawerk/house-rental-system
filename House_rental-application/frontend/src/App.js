@@ -16,7 +16,6 @@ import RenterHome from "./modules/user/renter/RenterHome";
 export const UserContext = createContext();
 
 function App() {
-  const date = new Date().getFullYear();
   const [userData, setUserData] = useState();
   const [userLoggedIn, setUserLoggedIn] = useState(false);
 
