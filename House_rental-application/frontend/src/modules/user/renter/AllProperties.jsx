@@ -8,7 +8,6 @@ const AllProperty = () => {
   const [allProperties, setAllProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [payingBookingId, setPayingBookingId] = useState(null);
-  const testPhone = "0911222333";
   const getAllProperty = async () => {
     try {
      const response = await api.get('/user/getallbookings');

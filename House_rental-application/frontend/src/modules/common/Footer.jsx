@@ -14,33 +14,33 @@ const Footer = () => {
           <div style={styles.section}>
             <h4 style={styles.heading}>Quick Links</h4>
             <ul style={styles.links}>
-              <li><a href="#" style={styles.link}>About Us</a></li>
-              <li><a href="#" style={styles.link}>Contact</a></li>
-              <li><a href="#" style={styles.link}>Terms & Conditions</a></li>
-              <li><a href="#" style={styles.link}>Privacy Policy</a></li>
+              <li><a href="/" style={styles.link}>About Us</a></li>
+              <li><a href="/" style={styles.link}>Contact</a></li>
+              <li><a href="/" style={styles.link}>Terms & Conditions</a></li>
+              <li><a href="/" style={styles.link}>Privacy Policy</a></li>
             </ul>
           </div>
           <div style={styles.section}>
             <h4 style={styles.heading}>Support</h4>
             <ul style={styles.links}>
-              <li><a href="#" style={styles.link}>FAQs</a></li>
-              <li><a href="#" style={styles.link}>Help Center</a></li>
-              <li><a href="#" style={styles.link}>Payment Support</a></li>
+              <li><a href="/" style={styles.link}>FAQs</a></li>
+              <li><a href="/" style={styles.link}>Help Center</a></li>
+              <li><a href="/" style={styles.link}>Payment Support</a></li>
             </ul>
           </div>
           <div style={styles.section}>
             <h4 style={styles.heading}>Follow Us</h4>
             <div style={styles.socialIcons}>
-              <a href="#" style={styles.socialIcon}>
+              <a href="/" style={styles.socialIcon}>
                 <i className="ti ti-brand-facebook" style={{ fontSize: 20 }} />
               </a>
-              <a href="#" style={styles.socialIcon}>
+              <a href="/" style={styles.socialIcon}>
                 <i className="ti ti-brand-twitter" style={{ fontSize: 20 }} />
               </a>
-              <a href="#" style={styles.socialIcon}>
+              <a href="/" style={styles.socialIcon}>
                 <i className="ti ti-brand-instagram" style={{ fontSize: 20 }} />
               </a>
-              <a href="#" style={styles.socialIcon}>
+              <a href="/" style={styles.socialIcon}>
                 <i className="ti ti-brand-linkedin" style={{ fontSize: 20 }} />
               </a>
             </div>
@@ -123,4 +123,5 @@ const styles = {
     marginTop: '10px',
   },
 };
+
 export default Footer;

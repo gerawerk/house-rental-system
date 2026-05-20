@@ -185,11 +185,11 @@ const AllPropertiesCards = ({ loggedIn }) => {
                         >
                            {property.propertyImage && property.propertyImage.length > 0 ? (
                               <Card.Img
-                                 variant="top"
-                                 src={`http://localhost:8000${property.propertyImage[0].path}`}
-                                 style={{ height: '200px', objectFit: 'cover' }}
-                                 alt={property.propertyAddress}
-                              />
+                               variant="top"
+                               src={`${process.env.REACT_APP_API_URL.replace('/api', '')}{property.                          propertyImage[0].path}`}
+                              style={{ height: '200px', objectFit: 'cover' }}
+                               alt={property.propertyAddress}
+                             />
                            ) : (
                               <div style={{ height: '200px', background: '#e9ecef', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                  <FaHome size={40} color="#adb5bd" />
@@ -267,12 +267,11 @@ const AllPropertiesCards = ({ loggedIn }) => {
                                <Carousel activeIndex={index} onSelect={handleSelect}>
                                   {property.propertyImage.map((image, idx) => (
                                      <Carousel.Item key={idx}>
-                                        <img
-                                           src={`http://localhost:8000${image.path}`}
-                                           alt={`Image ${idx + 1}`}
-                                           className="d-block w-100"
-                                           style={{ maxHeight: '400px', objectFit: 'cover', borderRadius: '8px' }}
-                                        />
+                                     <img
+                        src={`${process.env.REACT_APP_API_URL.replace('/api', '')}${image.path}`} alt={`Property view ${idx + 1}`}
+                        className="d-block w-100"
+                        style={{ maxHeight: '400px', objectFit: 'cover', borderRadius: '8px' }}
+                      />
                                      </Carousel.Item>
                                   ))}
                                </Carousel>
