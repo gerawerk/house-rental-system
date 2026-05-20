@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const bookingModel = mongoose.Schema(
   {
-    propertId: {
+    propertyId: {   
       type: mongoose.Schema.Types.ObjectId,
       ref: "propertyschema",
     },
@@ -24,14 +24,26 @@ const bookingModel = mongoose.Schema(
     },
     bookingStatus: {
       type: String,
-      required: [true, "Please provide a booking Type"],
+      enum: ['pending', 'booked', 'cancelled'],
+      default: 'pending',
+      required: true,
     },
+    paymentStatus: {          
+      type: String,
+      enum: ['pending', 'paid', 'failed'],
+      default: 'pending',
+      required: true,
+    },
+    paymentTransactionId: {    
+      type: String,
+      default: null,
+    }
   },
   {
-    strict: false,
+    strict: true,
+    timestamps: true,           
   }
 );
 
 const bookingSchema = mongoose.model("bookingschema", bookingModel);
-
 module.exports = bookingSchema;

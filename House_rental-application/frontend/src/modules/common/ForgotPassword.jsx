@@ -9,6 +9,7 @@ import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import axios from 'axios';
+import api from '../../services/api';
 
 const ForgotPassword = () => {
    const navigate = useNavigate();
@@ -31,7 +32,7 @@ const ForgotPassword = () => {
          alert("Passwords do not match");
       } else {
          try {
-            const res = await axios.post("http://localhost:8000/api/user/forgotpassword", data);
+            const res = await api.post("/user/forgotpassword", data);
             if (res.data.success) {
                alert('Your password has been changed!');
                navigate('/login');

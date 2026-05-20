@@ -8,16 +8,14 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
+import api from '../../services/api';
 
 const AllBookings = () => {
    const [allBookings, setAllBookings] = useState([]);
 
    const getAllBooking = async () => {
       try {
-         const response = await axios.get('http://localhost:8000/api/admin/getallbookings', {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem("token")}` }
-         });
-
+      const response = await api.get('/admin/getallbookings');
          if (response.data.success) {
             setAllBookings(response.data.data);
          } else {

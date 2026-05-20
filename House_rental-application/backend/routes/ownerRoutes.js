@@ -10,6 +10,7 @@ const {
   updatePropertyController,
   getAllBookingsController,
   handleAllBookingstatusController,
+  deleteBookingController,
 } = require("../controllers/ownerController");
 
 const router = express.Router();
@@ -37,7 +38,7 @@ router.get("/getallproperties", authMiddlware, getAllOwnerPropertiesController);
 router.get("/getallbookings", authMiddlware, getAllBookingsController);
 
 router.post("/handlebookingstatus", authMiddlware, handleAllBookingstatusController);
-
+router.post("/deletebooking", authMiddlware, deleteBookingController);
 router.delete(
   "/deleteproperty/:propertyid",
   authMiddlware,

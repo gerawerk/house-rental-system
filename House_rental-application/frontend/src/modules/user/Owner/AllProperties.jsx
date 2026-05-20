@@ -1,7 +1,9 @@
 import { message } from 'antd';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Button, Form, Modal, Col, InputGroup, Row, FloatingLabel, Card, Container } from 'react-bootstrap';
+import { Button, Form, Modal, Col, Row, FloatingLabel, Card, Container, Spinner } from 'react-bootstrap';
+import { FaEdit, FaTrash, FaHome } from 'react-icons/fa';
+import api from '../../../services/api';
 
 const AllProperties = () => {
    const [image, setImage] = useState(null);
@@ -16,8 +18,12 @@ const AllProperties = () => {
    });
    const [allProperties, setAllProperties] = useState([]);
    const [show, setShow] = useState(false);
+   const [loading, setLoading] = useState(true);
 
-   const handleClose = () => setShow(false);
+   const handleClose = () => {
+      setShow(false);
+      setImage(null); // Clear image slot on modal exit
+   };
 
    const handleShow = (propertyId) => {
       const propertyToEdit = allProperties.find(property => property._id === propertyId);
@@ -30,9 +36,7 @@ const AllProperties = () => {
 
    const getAllProperty = async () => {
       try {
-         const response = await axios.get('http://localhost:8000/api/owner/getallproperties', {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem("token")}` }
-         });
+           const response = await api.get('/owner/getallproperties');
          if (response.data.success) {
             setAllProperties(response.data.data);
          } else {
@@ -40,6 +44,8 @@ const AllProperties = () => {
          }
       } catch (error) {
          console.log(error);
+      } finally {
+         setLoading(false);
       }
    };
 
@@ -57,14 +63,7 @@ const AllProperties = () => {
       setEditingPropertyData({ ...editingPropertyData, [name]: value });
    };
 
-   useEffect(() => {
-      setEditingPropertyData((prevDetails) => ({
-         ...prevDetails,
-         propertyImage: image,
-      }));
-   }, [image]);
-
-   const saveChanges = async (propertyId, status) => {
+   const saveChanges = async (propertyId) => {
       try {
          const formData = new FormData();
          formData.append('propertyType', editingPropertyData.propertyType);
@@ -73,14 +72,14 @@ const AllProperties = () => {
          formData.append('ownerContact', editingPropertyData.ownerContact);
          formData.append('propertyAmt', editingPropertyData.propertyAmt);
          formData.append('additionalInfo', editingPropertyData.additionalInfo);
-         formData.append('propertyImage', image);
-         formData.append('isAvailable', status);
-         const res = await axios.patch(`http://localhost:8000/api/owner/updateproperty/${propertyId}`, formData, {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem("token")}` }
-         });
+         if (image) formData.append('propertyImage', image);
+         formData.append('isAvailable', editingPropertyData.isAvailable || 'Available');
+         const res = await api.patch(`/owner/updateproperty/${propertyId}`, formData, {headers: { 'Content-Type': 'multipart/form-data' }
+          });
          if (res.data.success) {
             message.success(res.data.message);
             handleClose();
+            getAllProperty(); 
          }
       } catch (error) {
          console.log(error);
@@ -92,9 +91,7 @@ const AllProperties = () => {
       let assure = window.confirm("Are you sure you want to delete?");
       if (assure) {
          try {
-            const response = await axios.delete(`http://localhost:8000/api/owner/deleteproperty/${propertyId}`, {
-               headers: { 'Authorization':`Bearer ${localStorage.getItem("token")}` }
-            });
+           const response = await api.delete(`/owner/deleteproperty/${propertyId}`);
             if (response.data.success) {
                message.success(response.data.message);
                getAllProperty();
@@ -107,43 +104,95 @@ const AllProperties = () => {
       }
    };
 
-   return (
-      <Container style={{ backgroundColor: 'black', minHeight: '100vh', padding: '20px' }}>
-         {allProperties.map((property) => (
-            <Card
-               key={property._id}
-               style={{
-                  backgroundColor: '#333',
-                  color: 'white',
-                  marginBottom: '20px',
-                  padding: '20px',
-                  borderRadius: '10px'
-               }}
-            >
-               <Card.Body>
-                  <Card.Title>{property.propertyType}</Card.Title>
-                  <Card.Text><strong>Ad Type:</strong> {property.propertyAdType}</Card.Text>
-                  <Card.Text><strong>Address:</strong> {property.propertyAddress}</Card.Text>
-                  <Card.Text><strong>Owner Contact:</strong> {property.ownerContact}</Card.Text>
-                  <Card.Text><strong>Amount:</strong> {property.propertyAmt}</Card.Text>
-                  <Card.Text><strong>Availability:</strong> {property.isAvailable ? 'Available' : 'Not Available'}</Card.Text>
-                  <Button variant="outline-info" onClick={() => handleShow(property._id)}>Edit</Button>
-                  <Button variant="outline-danger" className="mx-2" onClick={() => handleDelete(property._id)}>Delete</Button>
-               </Card.Body>
-            </Card>
-         ))}
+   if (loading) {
+      return (
+         <div className="text-center mt-5">
+            <Spinner animation="border" variant="light" />
+            <p className="text-light mt-2">Loading your properties...</p>
+         </div>
+      );
+   }
 
-         {/* Modal for editing property */}
-         <Modal show={show} onHide={handleClose}>
+   return (
+      <div style={{ backgroundColor: '#121212', minHeight: '100vh', padding: '30px' }}>
+         <Container fluid>
+            <h2 className="text-light mb-4">My Properties</h2>
+            <Row xs={1} md={2} lg={3} className="g-4">
+               {allProperties.map((property) => (
+                  <Col key={property._id}>
+                     <Card className="h-100 bg-dark text-white border-secondary">
+                        {property.propertyImage && property.propertyImage.length > 0 ? (
+                           <Card.Img
+                              variant="top"
+                             src={`${process.env.REACT_APP_API_URL.replace('/api', '')}${property.propertyImage[0].path}`}
+                              style={{ height: '200px', objectFit: 'cover' }}
+                              alt={property.propertyAddress}
+                           />
+                        ) : (
+                           <div style={{ height: '200px', background: '#444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <FaHome size={50} color="#aaa" />
+                           </div>
+                        )}
+                        <Card.Body>
+                           <Card.Title>{property.propertyType}</Card.Title>
+                           <Card.Text>
+                              <strong>Ad Type:</strong> {property.propertyAdType}<br />
+                              <strong>Address:</strong> {property.propertyAddress}<br />
+                              <strong>Owner Contact:</strong> {property.ownerContact}<br />
+                              <strong>Amount:</strong> Br {property.propertyAmt.toLocaleString()}<br />
+                              <strong>Availability:</strong> {property.isAvailable === 'Available' ? 'Available' : 'Not Available'}
+                           </Card.Text>
+                        </Card.Body>
+                        
+                        <Card.Footer className="bg-dark border-secondary d-flex align-items-center justify-content-between">
+                           {property.hasPaidBooking ? (
+                              <div className="text-warning small w-100 text-center border border-warning rounded p-2" style={{ backgroundColor: 'rgba(255, 193, 7, 0.05)' }}>
+                                 <strong>Status:</strong> Rented already / Has Active Booking
+                              </div>
+                           ) : (
+                              <>
+                                 <Button
+                                    variant="outline-info"
+                                    size="sm"
+                                    onClick={() => handleShow(property._id)}
+                                 >
+                                    <FaEdit /> Edit
+                                 </Button>
+                                 <Button
+                                    variant="outline-danger"
+                                    size="sm"
+                                    onClick={() => handleDelete(property._id)}
+                                 >
+                                    <FaTrash /> Delete
+                                 </Button>
+                              </>
+                           )}
+                        </Card.Footer>
+                     </Card>
+                  </Col>
+               ))}
+               {allProperties.length === 0 && (
+                  <Col>
+                     <div className="alert alert-info">You haven't added any properties yet.</div>
+                  </Col>
+               )}
+            </Row>
+         </Container>
+
+         {/* Edit Modal */}
+         <Modal show={show} onHide={handleClose} size="lg">
             <Modal.Header closeButton>
                <Modal.Title>Edit Property</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-               <Form onSubmit={() => saveChanges(editingPropertyId)}>
+               <Form onSubmit={(e) => {
+                  e.preventDefault();
+                  saveChanges(editingPropertyId);
+               }}>
                   <Row className="mb-3">
                      <Form.Group as={Col} md="6">
                         <Form.Label>Property Type</Form.Label>
-                        <Form.Select name="propertyType" value={editingPropertyData.propertyType} onChange={handleChange}>
+                        <Form.Select name="propertyType" value={editingPropertyData.propertyType} onChange={handleChange} required>
                            <option disabled>Choose...</option>
                            <option value="residential">Residential</option>
                            <option value="commercial">Commercial</option>
@@ -152,7 +201,7 @@ const AllProperties = () => {
                      </Form.Group>
                      <Form.Group as={Col} md="6">
                         <Form.Label>Ad Type</Form.Label>
-                        <Form.Select name="propertyAdType" value={editingPropertyData.propertyAdType} onChange={handleChange}>
+                        <Form.Select name="propertyAdType" value={editingPropertyData.propertyAdType} onChange={handleChange} required>
                            <option disabled>Choose...</option>
                            <option value="rent">Rent</option>
                            <option value="sale">Sale</option>
@@ -171,18 +220,22 @@ const AllProperties = () => {
                         <Form.Control type="text" placeholder="Contact Number" name="ownerContact" value={editingPropertyData.ownerContact} onChange={handleChange} required />
                      </Form.Group>
                      <Form.Group as={Col} md="6">
-                        <Form.Label>Amount</Form.Label>
+                        <Form.Label>Amount (Br)</Form.Label>
                         <Form.Control type="number" placeholder="Amount" name="propertyAmt" value={editingPropertyData.propertyAmt} onChange={handleChange} required />
                      </Form.Group>
                   </Row>
                   <FloatingLabel label="Additional Details" className="mb-3">
-                     <Form.Control as="textarea" name="additionalInfo" value={editingPropertyData.additionalInfo} onChange={handleChange} placeholder="Additional Info" />
+                     <Form.Control as="textarea" name="additionalInfo" value={editingPropertyData.additionalInfo} onChange={handleChange} placeholder="Additional Info" rows={3} />
                   </FloatingLabel>
-                  <Button variant="outline-info" type="submit">Update</Button>
+                  <Form.Group className="mb-3">
+                     <Form.Label>Change Image (optional)</Form.Label>
+                     <Form.Control type="file" onChange={handleImageChange} accept="image/*" />
+                  </Form.Group>
+                  <Button variant="primary" type="submit">Update Property</Button>
                </Form>
             </Modal.Body>
          </Modal>
-      </Container>
+      </div>
    );
 };
 

@@ -9,6 +9,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
+import api from '../../services/api';
 
 const AllUsers = () => {
    const [allUser, setAllUser] = useState([]);
@@ -19,9 +20,7 @@ const AllUsers = () => {
 
    const getAllUser = async () => {
       try {
-         const response = await axios.get('http://localhost:8000/api/admin/getallusers', {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem("token")}` }
-         });
+                const response = await api.get('/admin/getallusers');
 
          if (response.data.success) {
             setAllUser(response.data.data);

@@ -33,9 +33,13 @@ const propertyModel = mongoose.Schema({
    },
    ownerName: {
       type: String,
-   }
+   },
+   isAvailable: {
+   type: String,
+   default: "Available"
+}
 },{
-   strict: false,
+   strict: true,
 })
 
 const propertySchema = mongoose.model('propertyschema', propertyModel)

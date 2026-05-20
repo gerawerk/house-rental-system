@@ -1,109 +1,135 @@
-import React, { useState, useContext } from 'react'
+import React, { useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
-import Navbar from 'react-bootstrap/Navbar';
-import { Container, Nav } from 'react-bootstrap';
 import { UserContext } from '../../../App';
-import PropTypes from 'prop-types';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
 import AddProperty from './AddProperty';
 import AllProperties from './AllProperties';
 import AllBookings from './AllBookings';
 
-function CustomTabPanel(props) {
-  const { children, value, index, ...other } = props;
+const tabs = [
+  { label: 'Add Property',   icon: 'ti-plus' },
+  { label: 'All Properties', icon: 'ti-building' },
+  { label: 'All Bookings',   icon: 'ti-calendar-check' },
+];
 
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box sx={{ p: 3 }}>
-          <Typography>{children}</Typography>
-        </Box>
-      )}
-    </div>
-  );
-}
-
-CustomTabPanel.propTypes = {
-  children: PropTypes.node,
-  index: PropTypes.number.isRequired,
-  value: PropTypes.number.isRequired,
-};
-
-function a11yProps(index) {
-  return {
-    id: `simple-tab-${index}`,
-    'aria-controls': `simple-tabpanel-${index}`,
-  };
-}
 const OwnerHome = () => {
-  const user = useContext(UserContext)
-  const [value, setValue] = useState(0);
+  const user = useContext(UserContext);
+  const [active, setActive] = useState(0);
 
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
-
-  if (!user) {
-    return null
-  }
+  if (!user) return null;
 
   const handleLogOut = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-  }
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  };
+
+  const initials = user.userData.name
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 
   return (
-    <div>
-      <Navbar expand="lg" className="bg-body-tertiary">
-        <Container fluid>
-          <Navbar.Brand><h2>EasyRent</h2></Navbar.Brand>
-          <Navbar.Toggle aria-controls="navbarScroll" />
-          <Navbar.Collapse id="navbarScroll">
-            <Nav
-              className="me-auto my-2 my-lg-0"
-              style={{ maxHeight: '100px' }}
-              navbarScroll
-            >
-            </Nav>
-            <Nav>
-              <h5 className='mx-3'>Hi {user.userData.name}</h5>
-              <Link onClick={handleLogOut} to={'/'}>Log Out</Link>
-            </Nav>
-          </Navbar.Collapse>
-        </Container>
-      </Navbar>
+    <div style={styles.page}>
+      {/* ── NAVBAR ── */}
+      <nav style={styles.nav}>
+        <div style={styles.brand}>
+          <div style={styles.brandIcon}>
+            <i className="ti ti-building-estate" style={{ color: '#1a1a2e', fontSize: 18 }} />
+          </div>
+          <span style={styles.brandName}>EasyRent</span>
+        </div>
 
-      <Box sx={{ width: '100%' }}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
-            <Tab label="Add Property" {...a11yProps(0)} />
-            <Tab label="All Properties"
-              {...a11yProps(1)} />
-            <Tab label="All Bookings" {...a11yProps(2)} />
-          </Tabs>
-        </Box>
-        <CustomTabPanel value={value} index={0}>
-          <AddProperty />
-        </CustomTabPanel>
-        <CustomTabPanel value={value} index={1}>
-          <AllProperties />
-        </CustomTabPanel>
-        <CustomTabPanel value={value} index={2}>
-          <AllBookings />
-        </CustomTabPanel>
-      </Box>
+        <div style={styles.navRight}>
+          <div style={styles.avatar}>{initials}</div>
+          <span style={styles.greeting}>Hi, {user.userData.name}</span>
+          <Link to="/" onClick={handleLogOut} style={styles.logoutBtn}>
+            <i className="ti ti-logout" style={{ fontSize: 14 }} /> Log Out
+          </Link>
+        </div>
+      </nav>
+
+      {/* ── TABS ── */}
+      <div style={styles.tabBar}>
+        {tabs.map((tab, i) => (
+          <button
+            key={i}
+            onClick={() => setActive(i)}
+            style={{ ...styles.tab, ...(active === i ? styles.tabActive : {}) }}
+          >
+            <i className={`ti ${tab.icon}`} style={{ fontSize: 15 }} />
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── PANELS ── */}
+      <div style={styles.content}>
+        {active === 0 && <AddProperty />}
+        {active === 1 && <AllProperties />}
+        {active === 2 && <AllBookings />}
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default OwnerHome
+const styles = {
+  page: { minHeight: '100vh', background: '#f8f7f4', fontFamily: "'DM Sans', sans-serif" },
+  nav: {
+    background: '#1a1a2e',
+    borderBottom: '2px solid #c9a84c',
+    padding: '0 2rem',
+    height: 64,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  brand: { display: 'flex', alignItems: 'center', gap: 10 },
+  brandIcon: {
+    width: 32, height: 32,
+    background: '#c9a84c',
+    borderRadius: 8,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
+  brandName: {
+    fontFamily: "'Playfair Display', serif",
+    fontSize: 22, color: '#fff', letterSpacing: 0.5,
+  },
+  navRight: { display: 'flex', alignItems: 'center', gap: '1.25rem' },
+  avatar: {
+    width: 34, height: 34, borderRadius: '50%',
+    background: '#c9a84c',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontWeight: 600, fontSize: 13, color: '#1a1a2e',
+  },
+  greeting: { color: '#e8e4dc', fontSize: 14, fontWeight: 500 },
+  logoutBtn: {
+    display: 'flex', alignItems: 'center', gap: 6,
+    color: '#c9a84c', fontSize: 13, fontWeight: 500,
+    textDecoration: 'none',
+    padding: '6px 14px',
+    border: '1px solid #c9a84c',
+    borderRadius: 8,
+  },
+  tabBar: {
+    background: '#fff',
+    borderBottom: '1px solid #e8e4dc',
+    padding: '0 2rem',
+    display: 'flex',
+  },
+  tab: {
+    padding: '16px 22px',
+    fontFamily: "'DM Sans', sans-serif",
+    fontSize: 14, fontWeight: 500,
+    background: 'none', border: 'none',
+    borderBottom: '2px solid transparent',
+    color: '#7a7568',
+    cursor: 'pointer',
+    display: 'flex', alignItems: 'center', gap: 7,
+    transition: 'color 0.2s, border-color 0.2s',
+  },
+  tabActive: { borderBottomColor: '#c9a84c', color: '#1a1a2e' },
+  content: { padding: '2rem' },
+};
 
+export default OwnerHome;

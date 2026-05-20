@@ -11,6 +11,7 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import axios from 'axios';
 import { message } from 'antd';
+import api from '../../services/api';
 
 const Login = () => {
   const navigate = useNavigate()
@@ -30,7 +31,7 @@ const Login = () => {
     if (!data?.email || !data?.password) {
       return alert("Please fill all fields");
     } else {
-      axios.post('http://localhost:8000/api/user/login', data)
+      api.post('/user/login', data)
         .then((res) => {
           if (res.data.success) {
             message.success(res.data.message);

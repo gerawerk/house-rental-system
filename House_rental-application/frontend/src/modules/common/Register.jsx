@@ -14,6 +14,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import axios from 'axios';
 import { message } from 'antd';
+import api from '../../services/api';
 
 const Register = () => {
   const navigate = useNavigate()
@@ -33,7 +34,7 @@ const Register = () => {
     e.preventDefault()
     if (!data?.name || !data?.email || !data?.password || !data?.type) return alert("Please fill all fields");
     else {
-      axios.post('http://localhost:8000/api/user/register', data)
+      api.post('/user/register', data)
         .then((response) => {
           if (response.data.success) {
             message.success(response.data.message);

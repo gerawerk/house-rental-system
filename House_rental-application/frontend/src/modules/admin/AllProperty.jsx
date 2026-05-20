@@ -8,16 +8,15 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
+import api from '../../services/api';
 
 const AllProperty = () => {
    const [allProperties, setAllProperties] = useState([]);
 
    const getAllProperty = async () => {
       try {
-         const response = await axios.get('http://localhost:8000/api/admin/getallproperties', {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem("token")}` }
-         });
-
+         const response = await api.get('/admin/getallproperties');
+         
          if (response.data.success) {
             setAllProperties(response.data.data);
          } else {

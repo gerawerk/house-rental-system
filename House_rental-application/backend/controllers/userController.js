@@ -1,4 +1,5 @@
 const bcrypt = require("bcryptjs");
+const mongoose = require('mongoose');
 const jwt = require("jsonwebtoken");
 const userSchema = require("../schemas/userModel");
 const propertySchema = require("../schemas/propertyModel");
@@ -28,12 +29,7 @@ const registerController = async (req, res) => {
       await newUser.save();
     }
 
-    ///////////aur you can do this////////
-    //     if (req.body.type === "Owner") {
-    //       newUser.set("granted", "pending", { strict: false });
-    //     }
-    //////////////////// for this, then you need to remove strict keyword from schema//////////////////////
-
+ 
     return res.status(201).send({ message: "Register Success", success: true });
   } catch (error) {
     console.log(error);
@@ -150,51 +146,73 @@ const getAllPropertiesController = async (req, res) => {
   }
 };
 
-///////////booking handle///////////////
 const bookingHandleController = async (req, res) => {
   const { propertyid } = req.params;
-  const { userDetails, status, userId, ownerId } = req.body;
+  const { userDetails, status, ownerId } = req.body;
+  
+  // Get the logged-in user's ID from the auth token
+  const userId = req.user.id || req.user._id;
 
   try {
     const booking = new bookingSchema({
       propertyId: propertyid,
-      userID: userId,
-      ownerID: ownerId, 
+      userID: userId,           
+      ownerID: ownerId,
       userName: userDetails.fullName,
       phone: userDetails.phone,
       bookingStatus: status,
+      paymentStatus: 'pending',  
     });
 
     await booking.save();
-
-    return res
-      .status(200)
-      .send({ success: true, message: "Booking status updated" });
+    return res.status(200).send({ success: true, message: "Booking status updated" });
   } catch (error) {
     console.error("Error handling booking:", error);
-    return res
-      .status(500)
-      .send({ success: false, message: "Error handling booking" });
+    return res.status(500).send({ success: false, message: "Error handling booking" });
   }
 };
-
-/////get all bookings for sing tenents//////
 const getAllBookingsController = async (req, res) => {
-  const { userId } = req.body;
   try {
-    const getAllBookings = await bookingSchema.find();
-    const updatedBookings = getAllBookings.filter(
-      (booking) => booking.userID.toString() === userId
-    );
-    return res.status(200).send({
-      success: true,
-      data: updatedBookings,
+    const userId = req.user.id || req.user._id;
+    if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+    const userObjectId = new mongoose.Types.ObjectId(userId.toString());
+
+    // Find bookings by userID (now correctly populated)
+    const bookings = await bookingSchema.find({ userID: userObjectId });
+    if (bookings.length === 0) {
+      return res.status(200).json({ success: true, data: [] });
+    }
+
+    // Get user email
+    const user = await userSchema.findById(userObjectId).select('email');
+    const userEmail = user?.email || '';
+
+    // Collect property IDs from the bookings (support both field names)
+    const propertyIds = bookings
+      .map(b => b.propertyId || b.propertId)
+      .filter(id => id)
+      .map(id => new mongoose.Types.ObjectId(id.toString()));
+
+    // Fetch the related properties (to get rent amount)
+    const properties = await propertySchema.find({ _id: { $in: propertyIds } }).select('rentAmount price');
+    const propertyMap = new Map();
+    properties.forEach(p => propertyMap.set(p._id.toString(), p));
+
+    // Enrich each booking with rentAmount and email
+    const enrichedBookings = bookings.map(booking => {
+      const obj = booking.toObject();
+      const propId = obj.propertyId || obj.propertId;
+      const property = propId ? propertyMap.get(propId.toString()) : null;
+      obj.rentAmount = property?.rentAmount || property?.price || 0;
+      obj.email = userEmail;
+      return obj;
     });
+
+    return res.status(200).json({ success: true, data: enrichedBookings });
   } catch (error) {
-    console.error(error);
-    return res
-      .status(500)
-      .send({ message: "Internal server error", success: false });
+    console.error("Error in getAllBookingsController:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 module.exports = {
