@@ -77,8 +77,8 @@ const AddProperty = () => {
     borderRadius: 8,
     fontFamily: "'DM Sans', sans-serif",
     fontSize: 14,
-    background: '#f8f7f4',
-    color: '#1a1a2e',
+    background: 'var(--bg-primary)',
+    color: 'var(--text-main)',
     outline: 'none',
   };
 
@@ -109,14 +109,14 @@ const AddProperty = () => {
           </p>
         </div>
         <div style={styles.heroIcon}>
-          <i className="ti ti-home-plus" style={{ fontSize: 36, color: '#c9a84c' }} />
+          <i className="ti ti-home-plus" style={{ fontSize: 36, color: 'var(--accent-color)' }} />
         </div>
       </div>
 
       {/* ── Form card ── */}
       <div style={styles.card}>
         <h2 style={styles.cardTitle}>
-          <i className="ti ti-forms" style={{ color: '#c9a84c', fontSize: 18, marginRight: 8 }} />
+          <i className="ti ti-forms" style={{ color: 'var(--accent-color)', fontSize: 18, marginRight: 8 }} />
           Property Details
         </h2>
 
@@ -266,12 +266,12 @@ const styles = {
     background: 'rgba(201,168,76,0.05)',
   },
   heroEyebrow: {
-    color: '#c9a84c', fontSize: 11, fontWeight: 500,
+    color: 'var(--accent-color)', fontSize: 11, fontWeight: 500,
     letterSpacing: '2px', textTransform: 'uppercase', marginBottom: 8,
   },
   heroTitle: {
     fontFamily: "'Playfair Display', serif",
-    color: '#fff', fontSize: 28, fontWeight: 600,
+    color: 'var(--bg-secondary)', fontSize: 28, fontWeight: 600,
     lineHeight: 1.3, marginBottom: 12,
   },
   heroSub: { color: '#a0a0c0', fontSize: 14, maxWidth: 380, lineHeight: 1.6 },
@@ -284,7 +284,7 @@ const styles = {
     border: '1.5px solid rgba(201,168,76,0.4)',
   },
   card: {
-    background: '#fff',
+    background: 'var(--bg-secondary)',
     border: '1px solid #e8e4dc',
     borderRadius: 12,
     padding: '2rem',
@@ -303,12 +303,12 @@ const styles = {
     alignItems: 'center', justifyContent: 'center',
     border: '1.5px dashed #e8e4dc',
     borderRadius: 8, padding: 16,
-    background: '#f8f7f4',
+    background: 'var(--bg-primary)',
     cursor: 'pointer', textAlign: 'center', height: 42 * 2,
   },
   submitBtn: {
     display: 'flex', alignItems: 'center', gap: 8,
-    background: '#1a1a2e', color: '#fff',
+    background: 'var(--text-main)', color: 'var(--bg-secondary)',
     border: 'none',
     padding: '12px 28px',
     borderRadius: 10,

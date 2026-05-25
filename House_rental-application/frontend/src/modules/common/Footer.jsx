@@ -56,8 +56,8 @@ const Footer = () => {
 
 const styles = {
   footer: {
-    background: '#1a1a2e',
-    color: '#e8e4dc',
+    background: 'var(--text-main)',
+    color: 'var(--border-color)',
     padding: '40px 0 20px',
     borderTop: '2px solid #c9a84c',
     fontFamily: "'DM Sans', sans-serif",
@@ -79,7 +79,7 @@ const styles = {
   logo: {
     fontFamily: "'Playfair Display', serif",
     fontSize: '24px',
-    color: '#fff',
+    color: 'var(--bg-secondary)',
     marginBottom: '12px',
   },
   description: {
@@ -92,7 +92,7 @@ const styles = {
     fontSize: '16px',
     fontWeight: 600,
     marginBottom: '15px',
-    color: '#c9a84c',
+    color: 'var(--accent-color)',
   },
   links: {
     listStyle: 'none',

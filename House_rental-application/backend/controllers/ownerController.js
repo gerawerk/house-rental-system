@@ -209,6 +209,39 @@ const handleAllBookingstatusController = async (req, res) => {
     return res.status(500).send({ message: "Internal server error", success: false });
   }
 };
+
+// Release a property (make it available again)
+const releasePropertyController = async (req, res) => {
+  const { propertyId, bookingId } = req.body;
+  try {
+    const ownerId = req.user.id || req.user._id;
+
+    // Set property back to Available
+    await propertySchema.findByIdAndUpdate(
+      propertyId,
+      { isAvailable: 'Available' },
+      { new: true }
+    );
+
+    // Cancel the booking if provided
+    if (bookingId) {
+      await bookingSchema.findByIdAndUpdate(
+        bookingId,
+        { bookingStatus: 'cancelled' },
+        { new: true }
+      );
+    }
+
+    return res.status(200).send({
+      success: true,
+      message: "Property released and is now available for rent",
+    });
+  } catch (error) {
+    console.error("Error releasing property:", error);
+    return res.status(500).send({ success: false, message: "Internal server error" });
+  }
+};
+
 module.exports = {
   addPropertyController,
   getAllOwnerPropertiesController,
@@ -217,4 +250,5 @@ module.exports = {
   getAllBookingsController,
   handleAllBookingstatusController,
   deleteBookingController,
+  releasePropertyController,
 };

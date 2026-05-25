@@ -66,9 +66,8 @@ const AllPropertiesCards = ({ loggedIn }) => {
       setIndex(selectedIndex);
    };
 
-   // 🔥 FILTER: only show Available properties + apply user filters
+   // 🔥 FILTER: show ALL properties (Available or Taken), apply user filters
    const filteredProperties = allProperties
-      .filter((property) => property.isAvailable === 'Available')   // <-- hide unavailable
       .filter((property) => filterPropertyAddress === '' || property.propertyAddress.toLowerCase().includes(filterPropertyAddress.toLowerCase()))
       .filter(
          (property) =>
@@ -91,13 +90,13 @@ const AllPropertiesCards = ({ loggedIn }) => {
    }
 
    return (
-      <div style={{ backgroundColor: '#f5f5f5', minHeight: '100vh', padding: '20px 0' }}>
+      <div style={{ backgroundColor: 'var(--bg-primary)', minHeight: '100vh', padding: '20px 0' }}>
          <Container fluid>
             {/* FILTER SECTION – raised card, white background */}
             <div
                className="mb-5 p-4"
                style={{
-                  backgroundColor: '#ffffff',
+                  backgroundColor: 'var(--bg-secondary)',
                   borderRadius: '20px',
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
                   border: '1px solid #eaeaea',
@@ -110,7 +109,7 @@ const AllPropertiesCards = ({ loggedIn }) => {
                   <Col md={4}>
                      <Form.Label className="text-secondary small fw-semibold">📍 Location</Form.Label>
                      <InputGroup>
-                        <InputGroup.Text style={{ background: '#fff', borderRight: 'none' }}>
+                        <InputGroup.Text style={{ background: 'var(--bg-secondary)', borderRight: 'none' }}>
                            <i className="ti ti-map-pin" />
                         </InputGroup.Text>
                         <Form.Control
@@ -157,101 +156,138 @@ const AllPropertiesCards = ({ loggedIn }) => {
 
             {/* Results summary */}
             <div className="d-flex justify-content-between align-items-center mb-3">
-               <h5 style={{ color: '#1e2a3a', fontWeight: 500 }}>Available properties</h5>
+               <h5 style={{ color: '#1e2a3a', fontWeight: 500 }}>All properties</h5>
                <span className="text-muted small">
                   {filteredProperties.length} listing{filteredProperties.length !== 1 ? 's' : ''} found
                </span>
             </div>
 
-            {/* PROPERTY GRID – 3 columns, only available properties */}
+            {/* PROPERTY GRID – 3 columns */}
             <Row xs={1} md={2} lg={3} className="g-4">
                {filteredProperties.length > 0 ? (
-                  filteredProperties.map((property) => (
-                     <Col key={property._id}>
-                        <Card
-                           className="h-100 border-0 rounded-4 overflow-hidden"
-                           style={{
-                              transition: 'transform 0.2s, box-shadow 0.2s',
-                              boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-                           }}
-                           onMouseEnter={(e) => {
-                              e.currentTarget.style.transform = 'translateY(-6px)';
-                              e.currentTarget.style.boxShadow = '0 12px 20px rgba(0,0,0,0.1)';
-                           }}
-                           onMouseLeave={(e) => {
-                              e.currentTarget.style.transform = 'translateY(0)';
-                              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
-                           }}
-                        >
-                           {property.propertyImage && property.propertyImage.length > 0 ? (
-                              <Card.Img
-                               variant="top"
-                               src={`${process.env.REACT_APP_API_URL.replace('/api', '')}{property.                          propertyImage[0].path}`}
-                              style={{ height: '200px', objectFit: 'cover' }}
-                               alt={property.propertyAddress}
-                             />
-                           ) : (
-                              <div style={{ height: '200px', background: '#e9ecef', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                 <FaHome size={40} color="#adb5bd" />
-                              </div>
-                           )}
-                           <Card.Body>
-                              <div className="d-flex justify-content-between align-items-start mb-2">
-                                 <Card.Title className="mb-0" style={{ fontSize: '1.1rem', fontWeight: 600 }}>
-                                    {property.propertyAddress.split(',')[0]}
-                                 </Card.Title>
-                                 <Badge bg="success" pill>Available</Badge>
-                              </div>
-                              <div className="mb-2">
-                                 <span className="badge bg-light text-dark me-1">{property.propertyType}</span>
-                                 <span className="badge bg-light text-dark">
-                                    {property.propertyAdType === 'rent' ? 'For rent' : 'For sale'}
-                                 </span>
-                              </div>
-                              <Card.Text className="text-muted small">
-                                 <i className="ti ti-map-pin me-1" /> {property.propertyAddress}
-                                 <br />
-                                 <strong>Price:</strong> Br {property.propertyAmt.toLocaleString()}
-                                 {loggedIn && (
-                                    <>
-                                       <br />
-                                       <strong>Contact:</strong> {property.ownerContact}
-                                    </>
-                                 )}
-                              </Card.Text>
-                           </Card.Body>
-                           <Card.Footer className="bg-white border-top-0 pb-3 pt-0">
-                              {!loggedIn ? (
-                                 <Link to="/login">
-                                    <Button variant="outline-dark" size="sm" className="w-100">
-                                       Get info
-                                    </Button>
-                                 </Link>
+                  filteredProperties.map((property) => {
+                     const isTaken = property.isAvailable !== 'Available';
+                     return (
+                        <Col key={property._id}>
+                           <Card
+                              className="h-100 border-0 rounded-4 overflow-hidden"
+                              style={{
+                                 transition: 'transform 0.2s, box-shadow 0.2s',
+                                 boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                                 opacity: isTaken ? 0.75 : 1, // slightly dim taken properties
+                              }}
+                              onMouseEnter={(e) => {
+                                 if (!isTaken) {
+                                    e.currentTarget.style.transform = 'translateY(-6px)';
+                                    e.currentTarget.style.boxShadow = '0 12px 20px rgba(0,0,0,0.1)';
+                                 }
+                              }}
+                              onMouseLeave={(e) => {
+                                 e.currentTarget.style.transform = 'translateY(0)';
+                                 e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+                              }}
+                           >
+                              {property.propertyImage && property.propertyImage.length > 0 ? (
+                                 <div style={{ position: 'relative' }}>
+                                    <Card.Img
+                                       variant="top"
+                                       src={`${process.env.REACT_APP_API_URL.replace('/api', '')}${property.propertyImage[0].path}`}
+                                       style={{ height: '200px', objectFit: 'cover' }}
+                                       alt={property.propertyAddress}
+                                    />
+                                    {isTaken && (
+                                       <div style={{
+                                          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                                          background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                       }}>
+                                          <span style={{
+                                             background: '#e74c3c', color: 'var(--bg-secondary)', padding: '8px 24px',
+                                             borderRadius: 4, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase',
+                                             transform: 'rotate(-15deg)', border: '2px solid #fff'
+                                          }}>TAKEN</span>
+                                       </div>
+                                    )}
+                                 </div>
                               ) : (
-                                 <Button
-                                    onClick={() => handleShow(property._id)}
-                                    variant="dark"
-                                    size="sm"
-                                    className="w-100"
-                                 >
-                                    Request booking
-                                 </Button>
+                                 <div style={{ height: '200px', background: '#e9ecef', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                                    <FaHome size={40} color="#adb5bd" />
+                                    {isTaken && (
+                                       <div style={{
+                                          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                                          background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                       }}>
+                                          <span style={{
+                                             background: '#e74c3c', color: 'var(--bg-secondary)', padding: '8px 24px',
+                                             borderRadius: 4, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase',
+                                             transform: 'rotate(-15deg)', border: '2px solid #fff'
+                                          }}>TAKEN</span>
+                                       </div>
+                                    )}
+                                 </div>
                               )}
-                           </Card.Footer>
-                        </Card>
-                     </Col>
-                  ))
+                              <Card.Body>
+                                 <div className="d-flex justify-content-between align-items-start mb-2">
+                                    <Card.Title className="mb-0" style={{ fontSize: '1.1rem', fontWeight: 600 }}>
+                                       {property.propertyAddress.split(',')[0]}
+                                    </Card.Title>
+                                    {!isTaken ? (
+                                       <Badge bg="success" pill>Available</Badge>
+                                    ) : (
+                                       <Badge bg="danger" pill>Taken</Badge>
+                                    )}
+                                 </div>
+                                 <div className="mb-2">
+                                    <span className="badge bg-light text-dark me-1">{property.propertyType}</span>
+                                    <span className="badge bg-light text-dark">
+                                       {property.propertyAdType === 'rent' ? 'For rent' : 'For sale'}
+                                    </span>
+                                 </div>
+                                 <Card.Text className="text-muted small">
+                                    <i className="ti ti-map-pin me-1" /> {property.propertyAddress}
+                                    <br />
+                                    <strong>Price:</strong> Br {property.propertyAmt?.toLocaleString()}
+                                    {loggedIn && (
+                                       <>
+                                          <br />
+                                          <strong>Contact:</strong> {property.ownerContact}
+                                       </>
+                                    )}
+                                 </Card.Text>
+                              </Card.Body>
+                              <Card.Footer className="bg-white border-top-0 pb-3 pt-0">
+                                 {!loggedIn ? (
+                                    <Link to="/login">
+                                       <Button variant="outline-dark" size="sm" className="w-100">
+                                          Get info
+                                       </Button>
+                                    </Link>
+                                 ) : (
+                                    <Button
+                                       onClick={() => handleShow(property._id)}
+                                       variant="dark"
+                                       size="sm"
+                                       className="w-100"
+                                       disabled={isTaken}
+                                    >
+                                       {isTaken ? 'Currently Unavailable' : 'Request booking'}
+                                    </Button>
+                                 )}
+                              </Card.Footer>
+                           </Card>
+                        </Col>
+                     );
+                  })
                ) : (
                   <Col>
                      <div className="alert alert-light text-center p-5" role="alert">
-                        🏡 No available properties match your filters. Try different criteria.
+                        🏡 No properties match your filters. Try different criteria.
                      </div>
                   </Col>
                )}
             </Row>
          </Container>
 
-        {/* MODAL – full details + booking form (unchanged) */}
+        {/* MODAL – full details + booking form */}
         <Modal show={show} onHide={handleClose} size="lg" centered>
           <Modal.Header closeButton>
              <Modal.Title>Property details</Modal.Title>
@@ -279,7 +315,7 @@ const AllPropertiesCards = ({ loggedIn }) => {
                             <div className="mt-3">
                                <h5>{property.propertyAdType === 'rent' ? '🏠 For rent' : '💰 For sale'} – {property.propertyType}</h5>
                                <p><strong>📍 Location:</strong> {property.propertyAddress}</p>
-                               <p><strong>💰 Price:</strong> Br {property.propertyAmt.toLocaleString()}</p>
+                               <p><strong>💰 Price:</strong> Br {property.propertyAmt?.toLocaleString()}</p>
                                <p><strong>📞 Owner contact:</strong> {property.ownerContact}</p>
                                <p><strong>✅ Availability:</strong> {property.isAvailable}</p>
                                <p><strong>ℹ️ Additional info:</strong> {property.additionalInfo}</p>

@@ -35,7 +35,7 @@ const RenterHome = () => {
       <nav style={styles.nav}>
         <div style={styles.brand}>
           <div style={styles.brandIcon}>
-            <i className="ti ti-building-estate" style={{ color: '#1a1a2e', fontSize: 18 }} />
+            <i className="ti ti-building-estate" style={{ color: 'var(--bg-secondary)', fontSize: 18 }} />
           </div>
           <span style={styles.brandName}>EasyRent</span>
         </div>
@@ -73,45 +73,46 @@ const RenterHome = () => {
 };
 
 const styles = {
-  page: { minHeight: '100vh', background: '#f8f7f4', fontFamily: "'DM Sans', sans-serif" },
+  page: { minHeight: '100vh', background: 'var(--bg-primary)', fontFamily: "'DM Sans', sans-serif" },
   nav: {
-    background: '#1a1a2e',
-    borderBottom: '2px solid #c9a84c',
+    background: 'var(--bg-secondary)',
+    borderBottom: '1px solid #eaeaea',
     padding: '0 2rem',
     height: 64,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
   },
   brand: { display: 'flex', alignItems: 'center', gap: 10 },
   brandIcon: {
     width: 32, height: 32,
-    background: '#c9a84c',
+    background: 'var(--accent-color)',
     borderRadius: 8,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
   },
   brandName: {
     fontFamily: "'Playfair Display', serif",
-    fontSize: 22, color: '#fff', letterSpacing: 0.5,
+    fontSize: 22, color: 'var(--text-main)', letterSpacing: 0.5, fontWeight: 600,
   },
   navRight: { display: 'flex', alignItems: 'center', gap: '1.25rem' },
   avatar: {
     width: 34, height: 34, borderRadius: '50%',
-    background: '#c9a84c',
+    background: 'var(--accent-color)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontWeight: 600, fontSize: 13, color: '#1a1a2e',
+    fontWeight: 600, fontSize: 13, color: 'var(--bg-secondary)',
   },
-  greeting: { color: '#e8e4dc', fontSize: 14, fontWeight: 500 },
+  greeting: { color: 'var(--text-muted)', fontSize: 14, fontWeight: 500 },
   logoutBtn: {
     display: 'flex', alignItems: 'center', gap: 6,
-    color: '#c9a84c', fontSize: 13, fontWeight: 500,
+    color: 'var(--accent-color)', fontSize: 13, fontWeight: 500,
     textDecoration: 'none',
     padding: '6px 14px',
     border: '1px solid #c9a84c',
     borderRadius: 8,
   },
   tabBar: {
-    background: '#fff',
+    background: 'var(--bg-secondary)',
     borderBottom: '1px solid #e8e4dc',
     padding: '0 2rem',
     display: 'flex',
@@ -127,7 +128,7 @@ const styles = {
     display: 'flex', alignItems: 'center', gap: 7,
     transition: 'color 0.2s, border-color 0.2s',
   },
-  tabActive: { borderBottomColor: '#c9a84c', color: '#1a1a2e' },
+  tabActive: { borderBottomColor: 'var(--accent-color)', color: 'var(--text-main)' },
   content: { padding: '2rem' },
 };
 

@@ -17,7 +17,7 @@ const PaymentFailed = () => {
   }, [navigate, bookingId]);
 
   return (
-    <div style={{ textAlign: 'center', padding: '60px 20px', background: '#f8f7f4', minHeight: '100vh' }}>
+    <div style={{ textAlign: 'center', padding: '60px 20px', background: 'var(--bg-primary)', minHeight: '100vh' }}>
       <CloseCircleOutlined style={{ fontSize: 80, color: '#dc3545', marginBottom: 24 }} />
       <h1>Payment Failed</h1>
       <p>Your payment was not completed. You will be redirected to your bookings shortly...</p>

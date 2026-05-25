@@ -14,11 +14,11 @@ const Home = () => {
 
   return (
     <>
-      {/* ── NAVBAR (same style as dashboard) ── */}
+      {/* ── NAVBAR ── */}
       <nav style={styles.nav}>
         <div style={styles.brand}>
           <div style={styles.brandIcon}>
-            <i className="ti ti-building-estate" style={{ color: '#1a1a2e', fontSize: 18 }} />
+            <i className="ti ti-building-estate" style={{ color: 'var(--bg-secondary)', fontSize: 18 }} />
           </div>
           <span style={styles.brandName}>EasyRent</span>
         </div>
@@ -77,6 +77,29 @@ const Home = () => {
         <div style={styles.overlay} />
       </div>
 
+      {/* ── FEATURES SECTION ── */}
+      <div style={styles.featuresSection}>
+        <Container>
+          <div style={styles.featuresGrid}>
+            <div style={styles.featureCard}>
+              <div style={styles.featureIcon}>🛡️</div>
+              <h3 style={styles.featureTitle}>Verified Listings</h3>
+              <p style={styles.featureText}>Every property is verified to ensure high quality and security for our renters.</p>
+            </div>
+            <div style={styles.featureCard}>
+              <div style={styles.featureIcon}>⚡</div>
+              <h3 style={styles.featureTitle}>Fast Booking</h3>
+              <p style={styles.featureText}>Direct communication with owners makes the renting process seamless and fast.</p>
+            </div>
+            <div style={styles.featureCard}>
+              <div style={styles.featureIcon}>💎</div>
+              <h3 style={styles.featureTitle}>Premium Support</h3>
+              <p style={styles.featureText}>Our dedicated support team is available 24/7 to assist you with any inquiries.</p>
+            </div>
+          </div>
+        </Container>
+      </div>
+
       {/* ── PROPERTIES SECTION ── */}
       <div style={styles.propertySection}>
         <Container>
@@ -101,19 +124,20 @@ const Home = () => {
 
 const styles = {
   nav: {
-    background: '#1a1a2e',
-    borderBottom: '2px solid #c9a84c',
+    background: 'var(--bg-secondary)',
+    borderBottom: '1px solid #eaeaea',
     padding: '0 2rem',
     height: 64,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
   },
   brand: { display: 'flex', alignItems: 'center', gap: 10 },
   brandIcon: {
     width: 32,
     height: 32,
-    background: '#c9a84c',
+    background: 'var(--accent-color)',
     borderRadius: 8,
     display: 'flex',
     alignItems: 'center',
@@ -122,12 +146,13 @@ const styles = {
   brandName: {
     fontFamily: "'Playfair Display', serif",
     fontSize: 22,
-    color: '#fff',
+    color: 'var(--text-main)',
     letterSpacing: 0.5,
+    fontWeight: 600,
   },
   navLinks: { display: 'flex', gap: '1.5rem' },
   navLink: {
-    color: '#e8e4dc',
+    color: 'var(--text-muted)',
     textDecoration: 'none',
     fontSize: 15,
     fontWeight: 500,
@@ -153,7 +178,7 @@ const styles = {
     zIndex: 2,
     bottom: '25%',
     textAlign: 'center',
-    color: '#fff',
+    color: 'var(--bg-secondary)',
     textShadow: '0 2px 8px rgba(0,0,0,0.3)',
   },
   ctaBtn: {
@@ -163,9 +188,42 @@ const styles = {
     padding: '8px 28px',
     borderRadius: 40,
   },
+  featuresSection: {
+    padding: '60px 0 20px',
+    background: 'var(--bg-primary)',
+  },
+  featuresGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+    gap: 30,
+    marginTop: 20,
+  },
+  featureCard: {
+    background: 'var(--bg-secondary)',
+    padding: '30px',
+    borderRadius: '16px',
+    textAlign: 'center',
+    boxShadow: '0 4px 12px var(--shadow-color)',
+    border: '1px solid var(--border-color)',
+  },
+  featureIcon: {
+    fontSize: '40px',
+    marginBottom: '16px',
+  },
+  featureTitle: {
+    fontSize: '20px',
+    fontWeight: '600',
+    color: 'var(--text-main)',
+    marginBottom: '10px',
+  },
+  featureText: {
+    color: 'var(--text-muted)',
+    fontSize: '15px',
+    lineHeight: '1.6',
+  },
   propertySection: {
     padding: '60px 0',
-    background: '#f8f7f4',
+    background: 'var(--bg-primary)',
   },
   sectionHeader: {
     textAlign: 'center',
@@ -178,16 +236,16 @@ const styles = {
     marginTop: 20,
   },
   primaryBtn: {
-    background: '#c9a84c',
-    borderColor: '#c9a84c',
-    color: '#1a1a2e',
+    background: 'var(--accent-color)',
+    borderColor: 'var(--accent-color)',
+    color: 'var(--bg-secondary)',
     fontWeight: 600,
     padding: '8px 24px',
     borderRadius: 40,
   },
   secondaryBtn: {
-    borderColor: '#c9a84c',
-    color: '#c9a84c',
+    borderColor: 'var(--accent-color)',
+    color: 'var(--accent-color)',
     fontWeight: 600,
     padding: '8px 24px',
     borderRadius: 40,

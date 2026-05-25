@@ -1,18 +1,12 @@
 import { message } from 'antd';
 import React, { useState, useEffect } from 'react';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import { Button } from 'react-bootstrap';
+import { Button, Modal, Table } from 'react-bootstrap';
 import { Container, Typography } from '@mui/material';
 import api from '../../../services/api';
 
-const AllProperty = () => {
+const AllBookings = () => {
   const [allBookings, setAllBookings] = useState([]);
+  const [detailBooking, setDetailBooking] = useState(null);
 
   const getAllProperty = async () => {
     try {
@@ -53,6 +47,7 @@ const AllProperty = () => {
       if (res.data.success) {
         message.success('Booking cancelled and removed');
         getAllProperty();
+        setDetailBooking(null);
       } else {
         message.error('Failed to cancel');
       }
@@ -61,8 +56,33 @@ const AllProperty = () => {
     }
   };
 
+  const handleRelease = async (propertyId, bookingId) => {
+     try {
+        const res = await api.post('/owner/releaseproperty', { propertyId, bookingId });
+        if (res.data.success) {
+           message.success(res.data.message);
+           getAllProperty();
+           setDetailBooking(null);
+        } else {
+           message.error(res.data.message);
+        }
+     } catch (error) {
+        console.log(error);
+     }
+  }
+
+  const getStatusColor = (status) => {
+    switch (status) {
+       case 'pending': return { bg: 'rgba(243,156,18,0.15)', color: '#f39c12' };
+       case 'accepted': return { bg: 'rgba(46,204,113,0.15)', color: '#2ecc71' };
+       case 'booked': return { bg: 'rgba(52,152,219,0.15)', color: '#3498db' };
+       case 'cancelled': return { bg: 'rgba(231,76,60,0.15)', color: '#e74c3c' };
+       default: return { bg: 'rgba(149,165,166,0.15)', color: '#95a5a6' };
+    }
+  };
+
   return (
-    <div style={{ background: 'linear-gradient(135deg, #0f0f1f 0%, #1a1a2e 100%)', minHeight: '100vh', padding: '20px' }}>
+    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', padding: '20px', borderRadius: 12 }}>
       <Container maxWidth="lg" sx={{ paddingTop: 3 }}>
         <Typography 
           variant="h4" 
@@ -70,103 +90,171 @@ const AllProperty = () => {
           align="center" 
           sx={{ 
             marginBottom: 4, 
-            color: '#ffffff',
+            color: 'var(--text-main)',
             fontWeight: 600,
-            textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+            fontFamily: "'Playfair Display', serif",
           }}
         >
-          All Property Bookings
+          Property Bookings
         </Typography>
-        <TableContainer 
-          component={Paper} 
-          sx={{ 
-            backgroundColor: '#1e1e2f',
-            borderRadius: '16px',
-            overflow: 'hidden',
-            boxShadow: '0 8px 20px rgba(0,0,0,0.5)',
-            border: '1px solid #2a2a3a'
-          }}
-        >
-          <Table sx={{ minWidth: 650 }}>
-            <TableHead>
-              <TableRow sx={{ backgroundColor: '#0f0f1a' }}>
-                <TableCell sx={{ color: '#e0e0ff', fontWeight: 'bold', borderBottom: '2px solid #3a3a5a' }}>Booking ID</TableCell>
-                <TableCell sx={{ color: '#e0e0ff', fontWeight: 'bold', borderBottom: '2px solid #3a3a5a' }} align="center">Property ID</TableCell>
-                <TableCell sx={{ color: '#e0e0ff', fontWeight: 'bold', borderBottom: '2px solid #3a3a5a' }} align="center">Tenant Name</TableCell>
-                <TableCell sx={{ color: '#e0e0ff', fontWeight: 'bold', borderBottom: '2px solid #3a3a5a' }} align="center">Phone</TableCell>
-                <TableCell sx={{ color: '#e0e0ff', fontWeight: 'bold', borderBottom: '2px solid #3a3a5a' }} align="center">Booking Status</TableCell>
-                <TableCell sx={{ color: '#e0e0ff', fontWeight: 'bold', borderBottom: '2px solid #3a3a5a' }} align="center">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {allBookings.map((booking) => (
-                <TableRow 
-                  key={booking._id} 
-                  sx={{ 
-                    backgroundColor: '#26263a',
-                    transition: 'all 0.2s',
-                    '&:hover': { backgroundColor: '#2f2f48' },
-                    '&:last-child td, &:last-child th': { border: 0 }
-                  }}
-                >
-                  <TableCell sx={{ color: '#d0d0e8', fontSize: '0.85rem' }}>{booking._id}</TableCell>
-                  <TableCell align="center" sx={{ color: '#d0d0e8' }}>{booking.propertyId}</TableCell>
-                  <TableCell align="center" sx={{ color: '#d0d0e8' }}>{booking.userName}</TableCell>
-                  <TableCell align="center" sx={{ color: '#d0d0e8' }}>{booking.phone}</TableCell>
-                  <TableCell align="center">
-                    <span style={{
-                      display: 'inline-block',
-                      padding: '4px 12px',
-                      borderRadius: '20px',
-                      backgroundColor: booking.bookingStatus === 'pending' ? '#ffc10720' : '#28a74520',
-                      color: booking.bookingStatus === 'pending' ? '#ffc107' : '#28a745',
-                      fontWeight: 500,
-                      fontSize: '0.85rem'
-                    }}>
-                      {booking.bookingStatus === 'pending' ? 'Pending' : 'Accepted'}
-                    </span>
-                  </TableCell>
-                  <TableCell align="center">
-                    {booking.bookingStatus === 'pending' ? (
-                      <>
-                        <Button 
-                          onClick={() => handleAccept(booking._id, booking.propertyId)} 
-                          variant="outline-success" 
-                          size="sm"
-                          style={{ borderColor: '#28a745', color: '#28a745', marginRight: '8px' }}
-                        >
-                          Accept
-                        </Button>
-                        <Button 
-                          onClick={() => handleCancel(booking._id)} 
-                          variant="outline-danger" 
-                          size="sm"
-                          style={{ borderColor: '#dc3545', color: '#dc3545' }}
-                        >
-                          Cancel
-                        </Button>
-                      </>
-                    ) : (
-                      <span style={{ color: '#28a745', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        ✓ Accepted
-                      </span>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-              {allBookings.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ color: '#aaa', py: 4 }}>
-                    No bookings found.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+
+        {/* Booking Table */}
+        <div style={styles.tableContainer}>
+           <Table hover responsive style={styles.table}>
+              <thead style={styles.tableHead}>
+                 <tr>
+                    <th>ID</th>
+                    <th>Tenant</th>
+                    <th>Property ID</th>
+                    <th>Status</th>
+                    <th>Payment</th>
+                    <th>Actions</th>
+                 </tr>
+              </thead>
+              <tbody>
+                 {allBookings.map((booking) => {
+                    const statusStyle = getStatusColor(booking.bookingStatus);
+                    return (
+                       <tr key={booking._id} style={{ verticalAlign: 'middle' }}>
+                          <td><span style={{ fontFamily: 'monospace', color: 'var(--text-light)' }}>#{booking._id.slice(-8)}</span></td>
+                          <td style={{ fontWeight: 600 }}>{booking.userName}</td>
+                          <td style={{ color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                             {booking.propertyId || 'N/A'}
+                          </td>
+                          <td>
+                             <span style={{
+                                padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600,
+                                background: statusStyle.bg, color: statusStyle.color,
+                             }}>
+                                {booking.bookingStatus?.charAt(0).toUpperCase() + booking.bookingStatus?.slice(1)}
+                             </span>
+                          </td>
+                          <td>
+                             <span style={{ color: '#a0a0c0', fontSize: 11, fontWeight: 600 }}>
+                                💳 {booking.paymentStatus || 'pending'}
+                             </span>
+                          </td>
+                          <td>
+                             <div style={{ display: 'flex', gap: 6 }}>
+                                <button onClick={() => setDetailBooking(booking)} style={{ ...styles.actionBtn, ...styles.detailBtn }}>
+                                   👁
+                                </button>
+                                {booking.bookingStatus === 'pending' && (
+                                   <>
+                                      <button onClick={() => handleAccept(booking._id, booking.propertyId)} style={{ ...styles.actionBtn, ...styles.acceptBtn }}>
+                                         ✓
+                                      </button>
+                                      <button onClick={() => handleCancel(booking._id)} style={{ ...styles.actionBtn, ...styles.cancelBtn }}>
+                                         ✕
+                                      </button>
+                                   </>
+                                )}
+                                {booking.bookingStatus === 'accepted' && (
+                                   <button onClick={() => handleRelease(booking.propertyId, booking._id)} style={{ ...styles.actionBtn, ...styles.releaseBtn }}>
+                                      🔄 Release
+                                   </button>
+                                )}
+                             </div>
+                          </td>
+                       </tr>
+                    );
+                 })}
+              </tbody>
+           </Table>
+        </div>
+        
+        {allBookings.length === 0 && (
+          <div style={styles.emptyState}>
+             <span style={{ fontSize: 48 }}>📋</span>
+             <p style={{ color: 'var(--text-light)', marginTop: 12 }}>No bookings found.</p>
+          </div>
+        )}
       </Container>
+
+      {/* Detail Modal */}
+      <Modal show={!!detailBooking} onHide={() => setDetailBooking(null)} size="lg" centered>
+        <Modal.Header closeButton style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid #eaeaea' }}>
+           <Modal.Title style={{ color: 'var(--text-main)', fontFamily: "'Playfair Display', serif" }}>Booking Details</Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ background: 'var(--bg-primary)', color: 'var(--text-main)' }}>
+           {detailBooking && (
+              <div style={styles.detailGrid}>
+                 <div style={styles.detailItem}>
+                    <span style={styles.detailLabel}>Booking ID</span>
+                    <span style={styles.detailValue}>{detailBooking._id}</span>
+                 </div>
+                 <div style={styles.detailItem}>
+                    <span style={styles.detailLabel}>Tenant Name</span>
+                    <span style={styles.detailValue}>{detailBooking.userName}</span>
+                 </div>
+                 <div style={styles.detailItem}>
+                    <span style={styles.detailLabel}>Phone</span>
+                    <span style={styles.detailValue}>{detailBooking.phone}</span>
+                 </div>
+                 <div style={styles.detailItem}>
+                    <span style={styles.detailLabel}>Status</span>
+                    <span style={{
+                       ...styles.detailValue,
+                       color: getStatusColor(detailBooking.bookingStatus).color,
+                    }}>{detailBooking.bookingStatus}</span>
+                 </div>
+                 <div style={styles.detailItem}>
+                    <span style={styles.detailLabel}>Payment</span>
+                    <span style={{
+                       ...styles.detailValue,
+                       color: detailBooking.paymentStatus === 'paid' ? '#2ecc71' : '#f39c12'
+                    }}>{detailBooking.paymentStatus || 'pending'}</span>
+                 </div>
+                 <div style={styles.detailItem}>
+                    <span style={styles.detailLabel}>Property ID</span>
+                    <span style={styles.detailValue}>{detailBooking.propertyId}</span>
+                 </div>
+              </div>
+           )}
+        </Modal.Body>
+        <Modal.Footer style={{ background: 'var(--bg-secondary)', borderTop: '1px solid #eaeaea' }}>
+           {detailBooking && (
+              <>
+                {detailBooking.bookingStatus === 'pending' && (
+                  <Button variant="outline-success" onClick={() => handleAccept(detailBooking._id, detailBooking.propertyId)}>Accept</Button>
+                )}
+                {detailBooking.bookingStatus === 'accepted' && (
+                  <Button variant="outline-warning" onClick={() => handleRelease(detailBooking.propertyId, detailBooking._id)}>Release</Button>
+                )}
+                <Button variant="outline-danger" onClick={() => handleCancel(detailBooking._id)}>Delete</Button>
+              </>
+           )}
+           <Button variant="secondary" onClick={() => setDetailBooking(null)}>Close</Button>
+        </Modal.Footer>
+      </Modal>
+
     </div>
   );
 };
 
-export default AllProperty;
+const styles = {
+   tableContainer: {
+      background: 'var(--bg-secondary)',
+      border: '1px solid #eaeaea',
+      borderRadius: 16,
+      overflow: 'hidden',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+   },
+   table: { marginBottom: 0 },
+   tableHead: { background: 'var(--bg-primary)', borderBottom: '2px solid #eaeaea', color: 'var(--text-light)', textTransform: 'uppercase', fontSize: 12, letterSpacing: 0.5 },
+   actionBtn: {
+    padding: '6px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600,
+    cursor: 'pointer', border: 'none', transition: 'all 0.2s', fontFamily: "'DM Sans', sans-serif",
+  },
+  detailBtn: { background: 'rgba(52,152,219,0.15)', color: '#3498db' },
+  acceptBtn: { background: 'rgba(46,204,113,0.15)', color: '#2ecc71' },
+  cancelBtn: { background: 'rgba(231,76,60,0.15)', color: '#e74c3c' },
+  releaseBtn: { background: 'rgba(201,168,76,0.15)', color: 'var(--accent-color)' },
+  emptyState: { textAlign: 'center', padding: '80px 0' },
+  detailGrid: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20 },
+  detailItem: { display: 'flex', flexDirection: 'column', gap: 4 },
+  detailLabel: { fontSize: 11, color: '#a0a0c0', textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 600 },
+  detailValue: { color: 'var(--text-main)', fontSize: 15, fontWeight: 500 },
+}
+
+export default AllBookings;

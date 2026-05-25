@@ -253,3 +253,29 @@ select {
                                  </Row>
                               </Form>
                            </Modal> */
+:root {
+  --bg-primary: #f8f7f4;
+  --bg-secondary: #fff;
+  --text-main: #1a1a2e;
+  --text-muted: #4a4a5a;
+  --text-light: #7a7a9a;
+  --border-color: #eaeaea;
+  --accent-color: #c9a84c;
+  --shadow-color: rgba(0,0,0,0.03);
+}
+
+[data-theme='dark'] {
+  --bg-primary: #121212;
+  --bg-secondary: #1e1e1e;
+  --text-main: #f8f7f4;
+  --text-muted: #e0e0e0;
+  --text-light: #a0a0c0;
+  --border-color: #333333;
+  --accent-color: #d4b55c;
+  --shadow-color: rgba(255,255,255,0.03);
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+}

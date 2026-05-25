@@ -44,7 +44,7 @@ const Register = () => {
       <nav style={styles.nav}>
         <div style={styles.brand}>
           <div style={styles.brandIcon}>
-            <i className="ti ti-building-estate" style={{ color: '#1a1a2e', fontSize: 18 }} />
+            <i className="ti ti-building-estate" style={{ color: 'var(--text-main)', fontSize: 18 }} />
           </div>
           <span style={styles.brandName}>EasyRent</span>
         </div>
@@ -59,7 +59,7 @@ const Register = () => {
       <div style={styles.container}>
         <div style={styles.card}>
           <div style={styles.iconWrapper}>
-            <i className="ti ti-user-plus" style={{ fontSize: 40, color: '#c9a84c' }} />
+            <i className="ti ti-user-plus" style={{ fontSize: 40, color: 'var(--accent-color)' }} />
           </div>
           <h2 style={styles.title}>Create Account</h2>
           <p style={styles.subtitle}>Join EasyRent today</p>
@@ -130,19 +130,20 @@ const Register = () => {
 
 const styles = {
   nav: {
-    background: '#1a1a2e',
-    borderBottom: '2px solid #c9a84c',
+    background: 'var(--bg-secondary)',
+    borderBottom: '1px solid #eaeaea',
     padding: '0 2rem',
     height: 64,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
   },
   brand: { display: 'flex', alignItems: 'center', gap: 10 },
   brandIcon: {
     width: 32,
     height: 32,
-    background: '#c9a84c',
+    background: 'var(--accent-color)',
     borderRadius: 8,
     display: 'flex',
     alignItems: 'center',
@@ -151,12 +152,13 @@ const styles = {
   brandName: {
     fontFamily: "'Playfair Display', serif",
     fontSize: 22,
-    color: '#fff',
+    color: 'var(--text-main)',
     letterSpacing: 0.5,
+    fontWeight: 600,
   },
   navLinks: { display: 'flex', gap: '1.5rem' },
   navLink: {
-    color: '#e8e4dc',
+    color: 'var(--text-muted)',
     textDecoration: 'none',
     fontSize: 15,
     fontWeight: 500,
@@ -164,14 +166,14 @@ const styles = {
   },
   container: {
     minHeight: 'calc(100vh - 64px)',
-    background: '#f8f7f4',
+    background: 'var(--bg-primary)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     padding: '2rem',
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: 'var(--bg-secondary)',
     borderRadius: 20,
     boxShadow: '0 8px 24px rgba(0,0,0,0.05)',
     padding: '2rem 2rem 2.5rem',
@@ -183,7 +185,7 @@ const styles = {
   iconWrapper: {
     width: 70,
     height: 70,
-    background: '#f0ede8',
+    background: 'var(--bg-primary)',
     borderRadius: '50%',
     display: 'flex',
     alignItems: 'center',
@@ -193,7 +195,7 @@ const styles = {
   title: {
     fontSize: 26,
     fontWeight: 600,
-    color: '#1a1a2e',
+    color: 'var(--text-main)',
     marginBottom: 8,
     fontFamily: "'DM Sans', sans-serif",
   },
@@ -214,7 +216,7 @@ const styles = {
     display: 'block',
     fontSize: 13,
     fontWeight: 500,
-    color: '#4a4a5a',
+    color: 'var(--text-muted)',
     marginBottom: 6,
   },
   input: {
@@ -234,14 +236,14 @@ const styles = {
     border: '1px solid #e8e4dc',
     borderRadius: 12,
     outline: 'none',
-    background: '#fff',
+    background: 'var(--bg-secondary)',
     cursor: 'pointer',
     fontFamily: "'DM Sans', sans-serif",
   },
   button: {
     width: '100%',
-    background: '#1a1a2e',
-    color: '#fff',
+    background: 'var(--text-main)',
+    color: 'var(--bg-secondary)',
     border: 'none',
     padding: '12px',
     fontSize: 16,
@@ -258,7 +260,7 @@ const styles = {
     gap: 8,
   },
   link: {
-    color: '#c9a84c',
+    color: 'var(--accent-color)',
     textDecoration: 'none',
     fontSize: 13,
     fontWeight: 500,

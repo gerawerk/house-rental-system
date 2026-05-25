@@ -12,6 +12,7 @@ import { createContext, useEffect, useState } from "react";
 import AdminHome from "./modules/admin/AdminHome";
 import OwnerHome from "./modules/user/Owner/OwnerHome";
 import RenterHome from "./modules/user/renter/RenterHome";
+import ThemeToggle from "./modules/common/ThemeToggle";
 
 export const UserContext = createContext();
 
@@ -63,6 +64,7 @@ function App() {
           <footer className="bg-light text-center text-lg-start">
            <Footer />
           </footer>
+          <ThemeToggle />
         </Router>
       </div>
     </UserContext.Provider>
