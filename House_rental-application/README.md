@@ -1,4 +1,4 @@
-# House Rent App (MERN Stack)
+# House Rent App (MERN Stack).
 
 This project is a **House Rent App** built with the **MERN stack** (MongoDB, Express, React, Node.js). It is designed to manage and streamline the process of renting properties. The application supports three types of users:
 
