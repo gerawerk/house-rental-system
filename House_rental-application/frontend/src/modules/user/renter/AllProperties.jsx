@@ -1,6 +1,6 @@
 import { message } from 'antd';
 import React, { useState, useEffect } from 'react';
-import { Badge, Container, Spinner, Alert, Modal, Button as BsButton } from 'react-bootstrap';
+import { Container, Spinner, Alert, Modal, Button as BsButton } from 'react-bootstrap';
 import api from '../../../services/api';
 
 const AllProperty = () => {

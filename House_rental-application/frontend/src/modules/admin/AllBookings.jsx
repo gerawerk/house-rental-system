@@ -1,6 +1,6 @@
 import { message } from 'antd';
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Row, Col, Button as BsButton, Table } from 'react-bootstrap';
+import { Modal, Form, Button as BsButton, Table } from 'react-bootstrap';
 import api from '../../services/api';
 
 const AllBookings = () => {
