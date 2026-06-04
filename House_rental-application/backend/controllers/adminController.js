@@ -200,6 +200,38 @@ const deleteBookingController = async (req, res) => {
   }
 };
 
+/////////admin subscription fee records//////////////
+const getSubscriptionFeesController = async (req, res) => {
+  try {
+    const paidBookings = await bookingSchema.find({
+      paymentStatus: 'paid',
+      paymentTransactionId: { $exists: true, $ne: null },
+    }).populate('propertyId', 'propertyAmt propertyAddress propertyType');
+
+    const feeRecords = paidBookings.map((booking) => {
+      const property = booking.propertyId || {};
+      const amount = booking.rentAmount || property.propertyAmt || property.price || 0;
+      const feeAmount = Math.round((amount * 0.03 + Number.EPSILON) * 100) / 100;
+      return {
+        bookingId: booking._id,
+        propertyId: property._id || booking.propertyId,
+        propertyAddress: property.propertyAddress || '',
+        propertyType: property.propertyType || '',
+        transactionId: booking.paymentTransactionId,
+        amount,
+        fee: feeAmount,
+        createdAt: booking.updatedAt || booking.createdAt,
+      };
+    });
+
+    const totalFee = feeRecords.reduce((acc, record) => acc + record.fee, 0);
+    return res.status(200).send({ success: true, data: feeRecords, totalFee });
+  } catch (error) {
+    console.error('Error fetching subscription fees:', error);
+    return res.status(500).send({ success: false, message: 'Internal server error' });
+  }
+};
+
 /////////admin update booking status//////////////
 const updateBookingStatusController = async (req, res) => {
   const { bookingId, bookingStatus } = req.body;
@@ -241,6 +273,7 @@ module.exports = {
   togglePropertyVisibilityController,
   deletePropertyController,
   getAllBookingsController,
+  getSubscriptionFeesController,
   updateBookingController,
   deleteBookingController,
   updateBookingStatusController,

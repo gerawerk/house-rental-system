@@ -27,9 +27,14 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+const propertyUpload = upload.fields([
+  { name: 'propertyImages', maxCount: 10 },
+  { name: 'propertyDocuments', maxCount: 10 },
+]);
+
 router.post(
   "/postproperty",
-  upload.array("propertyImages"),
+  propertyUpload,
   authMiddlware,
   addPropertyController
 );
@@ -49,7 +54,10 @@ router.delete(
 
 router.patch(
   "/updateproperty/:propertyid",
-  upload.single("propertyImage"),
+  upload.fields([
+    { name: 'propertyImage', maxCount: 1 },
+    { name: 'propertyDocuments', maxCount: 10 },
+  ]),
   authMiddlware,
   updatePropertyController
 );

@@ -130,6 +130,7 @@ const AllProperty = () => {
                <thead style={styles.tableHead}>
                   <tr>
                      <th>Type</th>
+                     <th>ID</th>
                      <th>Ad Type</th>
                      <th>Address</th>
                      <th>Amount</th>
@@ -141,6 +142,7 @@ const AllProperty = () => {
                   {filteredProperties.map((property) => (
                      <tr key={property._id} style={{ verticalAlign: 'middle' }}>
                         <td><span style={styles.typeBadge}>{property.propertyType}</span></td>
+                        <td style={{ fontFamily: 'monospace', color: 'var(--text-light)', fontSize: 12, lineHeight: 1.3 }}>{property._id}</td>
                         <td>{property.propertyAdType === 'rent' ? 'For Rent' : 'For Sale'}</td>
                         <td style={{ color: 'var(--text-light)' }}>{property.propertyAddress}</td>
                         <td style={{ fontWeight: 600 }}>Br {property.propertyAmt?.toLocaleString()}</td>
@@ -249,6 +251,24 @@ const AllProperty = () => {
                         <div style={{ marginTop: 20 }}>
                            <span style={styles.detailLabel}>Additional Info</span>
                            <p style={{ color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.6 }}>{detailProperty.additionalInfo}</p>
+                        </div>
+                     )}
+                     {detailProperty.propertyDocuments && detailProperty.propertyDocuments.length > 0 && (
+                        <div style={{ marginTop: 20 }}>
+                           <span style={styles.detailLabel}>Property Documents</span>
+                           <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                              {detailProperty.propertyDocuments.map((doc, idx) => (
+                                 <a
+                                    key={idx}
+                                    href={`${process.env.REACT_APP_API_URL.replace('/api', '')}${doc.path}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    style={{ color: 'var(--accent-color)', fontSize: 14, textDecoration: 'underline' }}
+                                 >
+                                    {doc.filename || `Document ${idx + 1}`}
+                                 </a>
+                              ))}
+                           </div>
                         </div>
                      )}
                   </div>

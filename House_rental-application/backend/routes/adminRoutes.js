@@ -9,6 +9,7 @@ const {
   togglePropertyVisibilityController,
   deletePropertyController,
   getAllBookingsController,
+  getSubscriptionFeesController,
   updateBookingController,
   deleteBookingController,
   updateBookingStatusController,
@@ -31,6 +32,8 @@ router.post('/togglepropertyvisibility', authMiddlware, togglePropertyVisibility
 router.delete('/deleteproperty/:propertyid', authMiddlware, deletePropertyController)
 
 router.get('/getallbookings', authMiddlware, getAllBookingsController)
+
+router.get('/subscriptionfees', authMiddlware, getSubscriptionFeesController)
 
 router.post('/updatebooking', authMiddlware, updateBookingController)
 

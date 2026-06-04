@@ -245,6 +245,8 @@ const AllPropertiesCards = ({ loggedIn }) => {
                                  <Card.Text className="text-muted small">
                                     <i className="ti ti-map-pin me-1" /> {property.propertyAddress}
                                     <br />
+                                    <strong>Property ID:</strong> <span style={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>{property._id}</span>
+                                    <br />
                                     <strong>Price:</strong> Br {property.propertyAmt?.toLocaleString()}
                                     {loggedIn && (
                                        <>
@@ -315,6 +317,7 @@ const AllPropertiesCards = ({ loggedIn }) => {
                             <div className="mt-3">
                                <h5>{property.propertyAdType === 'rent' ? '🏠 For rent' : '💰 For sale'} – {property.propertyType}</h5>
                                <p><strong>📍 Location:</strong> {property.propertyAddress}</p>
+                               <p><strong>Property ID:</strong> <span style={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>{property._id}</span></p>
                                <p><strong>💰 Price:</strong> Br {property.propertyAmt?.toLocaleString()}</p>
                                <p><strong>📞 Owner contact:</strong> {property.ownerContact}</p>
                                <p><strong>✅ Availability:</strong> {property.isAvailable}</p>

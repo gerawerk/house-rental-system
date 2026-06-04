@@ -18,19 +18,29 @@ const addPropertyController = async (req, res) => {
     }
 
     let images = [];
+    let documents = [];
     if (req.files) {
-      images = req.files.map((file) => ({
-        filename: file.filename,
-        path: `/uploads/${file.filename}`,
-      }));
+      if (req.files.propertyImages) {
+        images = req.files.propertyImages.map((file) => ({
+          filename: file.filename,
+          path: `/uploads/${file.filename}`,
+        }));
+      }
+      if (req.files.propertyDocuments) {
+        documents = req.files.propertyDocuments.map((file) => ({
+          filename: file.filename,
+          path: `/uploads/${file.filename}`,
+        }));
+      }
     }
 
     const newPropertyData = new propertySchema({
       ...req.body,
       propertyImage: images,
+      propertyDocuments: documents,
       ownerId: user._id,
       ownerName: user.name,
-      isAvailable: "Available",
+      isAvailable: "Pending Approval",
     });
 
     await newPropertyData.save();
@@ -116,9 +126,29 @@ const updatePropertyController = async (req, res) => {
       return res.status(403).send({ success: false, message: "Not authorized to update this property" });
     }
 
+    const updatedData = { ...req.body };
+    if (req.files) {
+      if (req.files.propertyImage && req.files.propertyImage.length) {
+        updatedData.propertyImage = req.files.propertyImage.map((file) => ({
+          filename: file.filename,
+          path: `/uploads/${file.filename}`,
+        }));
+      }
+      if (req.files.propertyDocuments && req.files.propertyDocuments.length) {
+        const existingDocs = Array.isArray(property.propertyDocuments) ? property.propertyDocuments : [];
+        updatedData.propertyDocuments = [
+          ...existingDocs,
+          ...req.files.propertyDocuments.map((file) => ({
+            filename: file.filename,
+            path: `/uploads/${file.filename}`,
+          })),
+        ];
+      }
+    }
+
     const updatedProperty = await propertySchema.findByIdAndUpdate(
       { _id: propertyid },
-      { ...req.body },
+      updatedData,
       { new: true, runValidators: true }
     );
 

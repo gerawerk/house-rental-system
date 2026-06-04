@@ -35,9 +35,13 @@ const propertyModel = mongoose.Schema({
       type: String,
    },
    isAvailable: {
-   type: String,
-   default: "Available"
-}
+      type: String,
+      default: "Available"
+   },
+   propertyDocuments: {
+      type: Array,
+      default: []
+   }
 },{
    strict: true,
 })

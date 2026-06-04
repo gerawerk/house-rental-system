@@ -4,11 +4,13 @@ import { UserContext } from '../../App';
 import AllUsers from './AllUsers';
 import AllProperty from './AllProperty';
 import AllBookings from './AllBookings';
+import SubscriptionFees from './SubscriptionFees';
 
 const tabs = [
   { label: 'All Users', icon: '👥' },
   { label: 'All Properties', icon: '🏠' },
   { label: 'All Bookings', icon: '📋' },
+  { label: 'Subscription Fees', icon: '💰' },
 ];
 
 const AdminHome = () => {
@@ -85,6 +87,7 @@ const AdminHome = () => {
         {value === 0 && <AllUsers />}
         {value === 1 && <AllProperty />}
         {value === 2 && <AllBookings />}
+        {value === 3 && <SubscriptionFees />}
       </div>
     </div>
   );

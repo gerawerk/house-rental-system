@@ -10,6 +10,8 @@ const AllProperties = () => {
    const [editProperty, setEditProperty] = useState(null);
    const [editData, setEditData] = useState({});
    const [image, setImage] = useState(null);
+   const [documents, setDocuments] = useState(null);
+   const [documentNames, setDocumentNames] = useState('');
 
    const getAllProperty = async () => {
       try {
@@ -54,6 +56,8 @@ const AllProperties = () => {
       });
       setEditProperty(property);
       setImage(null);
+      setDocuments(null);
+      setDocumentNames('');
    };
 
    const handleEditChange = (e) => {
@@ -66,6 +70,12 @@ const AllProperties = () => {
       setImage(file);
    };
 
+   const handleDocumentChange = (e) => {
+      const files = e.target.files;
+      setDocuments(files);
+      setDocumentNames(files.length > 1 ? `${files.length} documents selected` : files[0]?.name || '');
+   };
+
    const handleEditSave = async () => {
       try {
          const formData = new FormData();
@@ -76,6 +86,11 @@ const AllProperties = () => {
          formData.append('propertyAmt', editData.propertyAmt);
          formData.append('additionalInfo', editData.additionalInfo);
          if (image) formData.append('propertyImage', image);
+         if (documents) {
+            for (let i = 0; i < documents.length; i++) {
+               formData.append('propertyDocuments', documents[i]);
+            }
+         }
          
          const res = await api.patch(`/owner/updateproperty/${editProperty._id}`, formData, {
              headers: { 'Content-Type': 'multipart/form-data' }
@@ -134,6 +149,7 @@ const AllProperties = () => {
                <thead style={styles.tableHead}>
                   <tr>
                      <th>Type</th>
+                     <th>ID</th>
                      <th>Ad Type</th>
                      <th>Address</th>
                      <th>Amount</th>
@@ -145,6 +161,7 @@ const AllProperties = () => {
                   {filteredProperties.map((property) => (
                      <tr key={property._id} style={{ verticalAlign: 'middle' }}>
                         <td><span style={styles.typeBadge}>{property.propertyType}</span></td>
+                        <td style={{ fontFamily: 'monospace', color: 'var(--text-light)', fontSize: 12, lineHeight: 1.3 }}>{property._id}</td>
                         <td>{property.propertyAdType === 'rent' ? 'For Rent' : 'For Sale'}</td>
                         <td style={{ color: 'var(--text-light)' }}>{property.propertyAddress}</td>
                         <td style={{ fontWeight: 600 }}>Br {property.propertyAmt?.toLocaleString()}</td>
@@ -249,6 +266,24 @@ const AllProperties = () => {
                            <p style={{ color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.6 }}>{detailProperty.additionalInfo}</p>
                         </div>
                      )}
+                     {detailProperty.propertyDocuments && detailProperty.propertyDocuments.length > 0 && (
+                        <div style={{ marginTop: 20 }}>
+                           <span style={styles.detailLabel}>Property Documents</span>
+                           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 10 }}>
+                              {detailProperty.propertyDocuments.map((doc, idx) => (
+                                 <a
+                                    key={idx}
+                                    href={`${process.env.REACT_APP_API_URL.replace('/api', '')}${doc.path}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    style={{ color: 'var(--accent-color)', textDecoration: 'underline', fontSize: 14 }}
+                                 >
+                                    {doc.filename || `Document ${idx + 1}`}
+                                 </a>
+                              ))}
+                           </div>
+                        </div>
+                     )}
                   </div>
                )}
             </Modal.Body>
@@ -321,6 +356,12 @@ const AllProperties = () => {
                      <Form.Label style={{ color: 'var(--text-muted)', fontWeight: 500 }}>Change Image (optional)</Form.Label>
                      <Form.Control type="file" onChange={handleImageChange} accept="image/*" 
                         style={{ background: 'var(--bg-secondary)', color: 'var(--text-main)', border: '1px solid #eaeaea' }} />
+                  </Form.Group>
+                  <Form.Group className="mb-3">
+                     <Form.Label style={{ color: 'var(--text-muted)', fontWeight: 500 }}>Upload Documents (optional)</Form.Label>
+                     <Form.Control type="file" multiple onChange={handleDocumentChange} accept="application/pdf,image/*" 
+                        style={{ background: 'var(--bg-secondary)', color: 'var(--text-main)', border: '1px solid #eaeaea' }} />
+                     {documentNames && <small className="text-muted">{documentNames}</small>}
                   </Form.Group>
                </Form>
             </Modal.Body>

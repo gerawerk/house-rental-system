@@ -5,6 +5,8 @@ import api from '../../../services/api';
 const AddProperty = () => {
   const [image, setImage] = useState(null);
   const [fileNames, setFileNames] = useState('');
+  const [documentFiles, setDocumentFiles] = useState(null);
+  const [documentNames, setDocumentNames] = useState('');
   const [propertyDetails, setPropertyDetails] = useState({
     propertyType: 'residential',
     propertyAdType: 'rent',
@@ -18,6 +20,8 @@ const AddProperty = () => {
   const resetForm = () => {
     setImage(null);
     setFileNames('');
+    setDocumentFiles(null);
+    setDocumentNames('');
     setPropertyDetails({
       propertyType: 'residential',
       propertyAdType: 'rent',
@@ -26,19 +30,23 @@ const AddProperty = () => {
       propertyAmt: '',
       additionalInfo: '',
     });
-    // Clear file input (optional)
-    const fileInput = document.querySelector('input[type="file"]');
-    if (fileInput) fileInput.value = '';
+    // Clear file inputs
+    const imageInput = document.querySelector('input[name="propertyImages"]');
+    const docInput = document.querySelector('input[name="propertyDocuments"]');
+    if (imageInput) imageInput.value = '';
+    if (docInput) docInput.value = '';
   };
 
-  const handleImageChange = (e) => {
-    const files = e.target.files;
-    setImage(files);
-    setFileNames(
-      files.length > 1
-        ? `${files.length} images selected`
-        : files[0]?.name ?? ''
-    );
+  const handleFileChange = (e) => {
+    const { name, files } = e.target;
+    if (name === 'propertyImages') {
+      setImage(files);
+      setFileNames(files.length > 1 ? `${files.length} images selected` : files[0]?.name ?? '');
+    }
+    if (name === 'propertyDocuments') {
+      setDocumentFiles(files);
+      setDocumentNames(files.length > 1 ? `${files.length} documents selected` : files[0]?.name ?? '');
+    }
   };
 
   const handleChange = (e) => {
@@ -53,6 +61,11 @@ const AddProperty = () => {
     if (image) {
       for (let i = 0; i < image.length; i++) {
         formData.append('propertyImages', image[i]);
+      }
+    }
+    if (documentFiles) {
+      for (let i = 0; i < documentFiles.length; i++) {
+        formData.append('propertyDocuments', documentFiles[i]);
       }
     }
     api.post('/owner/postproperty', formData, {
@@ -165,22 +178,41 @@ const AddProperty = () => {
           </div>
 
           {/* Row 2 */}
-          <div style={{ ...styles.grid3, gridTemplateColumns: '2fr 1fr 1fr', marginTop: '1.25rem' }}>
+          <div style={{ ...styles.grid3, gridTemplateColumns: 'repeat(4, 1fr)', marginTop: '1.25rem' }}>
             {/* Image upload */}
             <div>
               <label style={labelStyle}>Property Images</label>
               <label style={styles.uploadZone}>
                 <input
                   type="file"
+                  name="propertyImages"
                   accept="image/*"
                   multiple
                   required
-                  onChange={handleImageChange}
+                  onChange={handleFileChange}
                   style={{ display: 'none' }}
                 />
                 <i className="ti ti-photo-up" style={{ fontSize: 22, color: '#7a7568', display: 'block', marginBottom: 4 }} />
                 <span style={{ fontSize: 12, color: '#7a7568' }}>
                   {fileNames || 'Click to upload images'}
+                </span>
+              </label>
+            </div>
+
+            <div>
+              <label style={labelStyle}>Property Documents</label>
+              <label style={styles.uploadZone}>
+                <input
+                  type="file"
+                  name="propertyDocuments"
+                  accept="application/pdf,image/*"
+                  multiple
+                  onChange={handleFileChange}
+                  style={{ display: 'none' }}
+                />
+                <i className="ti ti-file-text" style={{ fontSize: 22, color: '#7a7568', display: 'block', marginBottom: 4 }} />
+                <span style={{ fontSize: 12, color: '#7a7568' }}>
+                  {documentNames || 'Upload legal documents'}
                 </span>
               </label>
             </div>

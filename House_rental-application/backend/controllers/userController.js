@@ -132,7 +132,7 @@ const authController = async (req, res) => {
 /////////get all properties in home
 const getAllPropertiesController = async (req, res) => {
   try {
-    const allProperties = await propertySchema.find({});
+    const allProperties = await propertySchema.find({ isAvailable: { $ne: 'Pending Approval' } });
     if (!allProperties) {
       throw new Error("No properties available");
     } else {
@@ -195,7 +195,7 @@ const getAllBookingsController = async (req, res) => {
       .map(id => new mongoose.Types.ObjectId(id.toString()));
 
     // Fetch the related properties (to get rent amount)
-    const properties = await propertySchema.find({ _id: { $in: propertyIds } }).select('rentAmount price');
+    const properties = await propertySchema.find({ _id: { $in: propertyIds } }).select('rentAmount price propertyAmt');
     const propertyMap = new Map();
     properties.forEach(p => propertyMap.set(p._id.toString(), p));
 
@@ -204,7 +204,7 @@ const getAllBookingsController = async (req, res) => {
       const obj = booking.toObject();
       const propId = obj.propertyId || obj.propertId;
       const property = propId ? propertyMap.get(propId.toString()) : null;
-      obj.rentAmount = property?.rentAmount || property?.price || 0;
+      obj.rentAmount = property?.rentAmount || property?.price || property?.propertyAmt || 0;
       obj.email = userEmail;
       return obj;
     });
