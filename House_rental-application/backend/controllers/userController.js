@@ -147,25 +147,33 @@ const getAllPropertiesController = async (req, res) => {
 };
 
 const bookingHandleController = async (req, res) => {
-  const { propertyid } = req.params;
-  const { userDetails, status, ownerId } = req.body;
-  
-  // Get the logged-in user's ID from the auth token
+  const { propertyId } = req.params;         
+  const { fullName, phone, status, ownerId } = req.body;
   const userId = req.user.id || req.user._id;
+  const governmentIdFile = req.file;          
+  // Validation
+  if (!fullName || !phone || !ownerId || !governmentIdFile) {
+    return res.status(400).send({ 
+      success: false, 
+      message: "Missing required fields: fullName, phone, ownerId, or governmentId file" 
+    });
+  }
 
   try {
     const booking = new bookingSchema({
-      propertyId: propertyid,
-      userID: userId,           
+      propertyId: propertyId,
+      userID: userId,
       ownerID: ownerId,
-      userName: userDetails.fullName,
-      phone: userDetails.phone,
-      bookingStatus: status,
-      paymentStatus: 'pending',  
+      userName: fullName,
+      phone: Number(phone),                   
+      bookingStatus: status || 'pending',
+      paymentStatus: 'pending',
+      governmentIdPath: governmentIdFile.path,
+      governmentIdOriginalName: governmentIdFile.originalname,
     });
 
     await booking.save();
-    return res.status(200).send({ success: true, message: "Booking status updated" });
+    return res.status(200).send({ success: true, message: "Booking request submitted" });
   } catch (error) {
     console.error("Error handling booking:", error);
     return res.status(500).send({ success: false, message: "Error handling booking" });

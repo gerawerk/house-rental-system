@@ -30,7 +30,6 @@ const AddProperty = () => {
       propertyAmt: '',
       additionalInfo: '',
     });
-    // Clear file inputs
     const imageInput = document.querySelector('input[name="propertyImages"]');
     const docInput = document.querySelector('input[name="propertyDocuments"]');
     if (imageInput) imageInput.value = '';
@@ -51,11 +50,34 @@ const AddProperty = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setPropertyDetails((prev) => ({ ...prev, [name]: value }));
+    // For ownerContact, allow only digits
+    if (name === 'ownerContact') {
+      const digitsOnly = value.replace(/\D/g, '');
+      setPropertyDetails((prev) => ({ ...prev, [name]: digitsOnly }));
+    } else {
+      setPropertyDetails((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  // Phone validation: exactly 10 digits, starts with 07 or 09
+  const validatePhone = (phone) => {
+    if (!phone) return 'Contact number is required.';
+    if (phone.length !== 10) return 'Phone number must contain exactly 10 digits.';
+    if (!phone.startsWith('07') && !phone.startsWith('09')) {
+      return 'Phone number must start with 07 or 09.';
+    }
+    return null;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    const phoneError = validatePhone(propertyDetails.ownerContact);
+    if (phoneError) {
+      message.error(phoneError);
+      return;
+    }
+
     const formData = new FormData();
     Object.entries(propertyDetails).forEach(([k, v]) => formData.append(k, v));
     if (image) {
@@ -69,11 +91,12 @@ const AddProperty = () => {
       }
     }
     api.post('/owner/postproperty', formData, {
-       headers: { 'Content-Type': 'multipart/form-data' }, 
-       }).then((res) => {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+      .then((res) => {
         if (res.data.success) {
           message.success(res.data.message);
-          resetForm(); // Clear form on success
+          resetForm();
         } else {
           message.error(res.data.message);
         }
@@ -107,7 +130,7 @@ const AddProperty = () => {
 
   return (
     <div style={{ fontFamily: "'DM Sans', sans-serif" }}>
-      {/* ── Hero banner ── */}
+      {/* Hero banner */}
       <div style={styles.hero}>
         <div style={styles.heroBubble1} />
         <div style={styles.heroBubble2} />
@@ -126,7 +149,7 @@ const AddProperty = () => {
         </div>
       </div>
 
-      {/* ── Form card ── */}
+      {/* Form card */}
       <div style={styles.card}>
         <h2 style={styles.cardTitle}>
           <i className="ti ti-forms" style={{ color: 'var(--accent-color)', fontSize: 18, marginRight: 8 }} />
@@ -179,7 +202,6 @@ const AddProperty = () => {
 
           {/* Row 2 */}
           <div style={{ ...styles.grid3, gridTemplateColumns: 'repeat(4, 1fr)', marginTop: '1.25rem' }}>
-            {/* Image upload */}
             <div>
               <label style={labelStyle}>Property Images</label>
               <label style={styles.uploadZone}>
@@ -227,7 +249,12 @@ const AddProperty = () => {
                 onChange={handleChange}
                 required
                 style={inputStyle}
+                inputMode="numeric"
+                pattern="\d*"
               />
+              <div style={{ fontSize: '11px', color: '#7a7568', marginTop: '4px' }}>
+                Must be 10 digits, starting with 07 or 09 (numbers only)
+              </div>
             </div>
 
             <div>
@@ -263,7 +290,6 @@ const AddProperty = () => {
             />
           </div>
 
-          {/* Submit */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.75rem' }}>
             <button type="submit" style={styles.submitBtn}>
               <i className="ti ti-send" style={{ fontSize: 15 }} /> Post Property

@@ -37,7 +37,17 @@ const bookingModel = mongoose.Schema(
     paymentTransactionId: {    
       type: String,
       default: null,
-    }
+    },
+    governmentIdPath: {
+      type: String,
+      required: false,  
+      default: null,
+    },
+    governmentIdOriginalName: {
+      type: String,
+      required: false,
+      default: null,
+    },
   },
   {
     strict: true,

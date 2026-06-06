@@ -14,21 +14,69 @@ const AllPropertiesCards = ({ loggedIn }) => {
    const [filterPropertyAddress, setPropertyAddress] = useState('');
    const [propertyOpen, setPropertyOpen] = useState(null);
    const [loading, setLoading] = useState(true);
+   const [submitting, setSubmitting] = useState(false);
    const [userDetails, setUserDetails] = useState({
       fullName: '',
-      phone: 0,
+      phone: '',
+   });
+   const [governmentIdFile, setGovernmentIdFile] = useState(null);
+
+   // Error states for inline validation
+   const [errors, setErrors] = useState({
+      fullName: '',
+      phone: '',
+      governmentId: '',
    });
 
    const handleChange = (e) => {
       const { name, value } = e.target;
-      setUserDetails({ ...userDetails, [name]: value });
+      // Clear field-specific error when user starts typing
+      setErrors(prev => ({ ...prev, [name]: '' }));
+      if (name === 'phone') {
+         const digitsOnly = value.replace(/\D/g, '');
+         setUserDetails({ ...userDetails, [name]: digitsOnly });
+      } else {
+         setUserDetails({ ...userDetails, [name]: value });
+      }
    };
 
-   const handleClose = () => setShow(false);
+   const handleFileChange = (e) => {
+      const file = e.target.files[0];
+      setErrors(prev => ({ ...prev, governmentId: '' }));
+      if (file) {
+         const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg','image/fif','application/pdf'];
+         if (!allowedTypes.includes(file.type)) {
+            message.error('Only images or PDF files are allowed');
+            e.target.value = null;
+            setGovernmentIdFile(null);
+            setErrors(prev => ({ ...prev, governmentId: 'Only images or PDF files are allowed' }));
+            return;
+         }
+         if (file.size > 5 * 1024 * 1024) {
+            message.error('File size must be less than 5MB');
+            e.target.value = null;
+            setGovernmentIdFile(null);
+            setErrors(prev => ({ ...prev, governmentId: 'File size must be less than 5MB' }));
+            return;
+         }
+         setGovernmentIdFile(file);
+      } else {
+         setGovernmentIdFile(null);
+      }
+   };
+
+   const handleClose = () => {
+      setShow(false);
+      setGovernmentIdFile(null);
+      setUserDetails({ fullName: '', phone: '' });
+      setErrors({ fullName: '', phone: '', governmentId: '' });
+   };
 
    const handleShow = (propertyId) => {
       setPropertyOpen(propertyId);
       setShow(true);
+      // Reset errors when opening modal
+      setErrors({ fullName: '', phone: '', governmentId: '' });
    };
 
    const getAllProperties = async () => {
@@ -42,19 +90,72 @@ const AllPropertiesCards = ({ loggedIn }) => {
       }
    };
 
+   // Phone validation: exactly 10 digits, starts with 07 or 09
+   const validatePhone = (phone) => {
+      if (!phone) return 'Phone number is required.';
+      if (phone.length !== 10) return 'Phone number must contain exactly 10 digits.';
+      if (!phone.startsWith('07') && !phone.startsWith('09')) {
+         return 'Phone number must start with 07 or 09.';
+      }
+      return null;
+   };
+
    const handleBooking = async (status, propertyId, ownerId) => {
+      // Reset all errors
+      let newErrors = { fullName: '', phone: '', governmentId: '' };
+      let hasError = false;
+
+      // Validate full name
+      if (!userDetails.fullName  || userDetails.fullName.trim() === '') {
+         newErrors.fullName = 'Full name is required.';
+         hasError = true;
+      }
+
+      // Validate phone
+
+    const phoneError = validatePhone(userDetails.phone);
+      if (phoneError) {
+         newErrors.phone = phoneError;
+         hasError = true;
+      }
+
+      // Validate government ID
+      if (!governmentIdFile) {
+         newErrors.governmentId = 'Please upload a government ID (Kebele, passport, etc.)';
+         hasError = true;
+      }
+
+      if (hasError) {
+         setErrors(newErrors);
+         // Also show first error as toast for immediate attention
+         const firstError = newErrors.fullName || newErrors.phone || newErrors.governmentId;
+         message.error(firstError);
+         return;
+      }
+
+      setSubmitting(true);
+      const formData = new FormData();
+      formData.append('fullName', userDetails.fullName);
+      formData.append('phone', userDetails.phone);
+      formData.append('status', status);
+      formData.append('ownerId', ownerId);
+      formData.append('governmentId', governmentIdFile);
+
       try {
-      await api.post(`/user/bookinghandle/${propertyId}`, { userDetails, status, ownerId })
-       .then((res) => {
-               if (res.data.success) {
-                  message.success(res.data.message);
-                  handleClose();
-               } else {
-                  message.error(res.data.message);
-               }
-            });
+         const res = await api.post(`/user/bookinghandle/${propertyId}`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+         });
+         if (res.data.success) {
+            message.success(res.data.message);
+            handleClose();
+         } else {
+            message.error(res.data.message);
+         }
       } catch (error) {
-         console.log(error);
+         console.error(error);
+         message.error('Booking failed. Please try again.');
+      } finally {
+         setSubmitting(false);
       }
    };
 
@@ -66,13 +167,12 @@ const AllPropertiesCards = ({ loggedIn }) => {
       setIndex(selectedIndex);
    };
 
-   // 🔥 FILTER: show ALL properties (Available or Taken), apply user filters
    const filteredProperties = allProperties
+      .filter((property) => property.isAvailable === 'Available')
       .filter((property) => filterPropertyAddress === '' || property.propertyAddress.toLowerCase().includes(filterPropertyAddress.toLowerCase()))
       .filter(
          (property) =>
-            filterPropertyAdType === '' ||
-            property.propertyAdType.toLowerCase().includes(filterPropertyAdType.toLowerCase())
+            filterPropertyAdType === '' || property.propertyAdType.toLowerCase().includes(filterPropertyAdType.toLowerCase())
       )
       .filter(
          (property) =>
@@ -90,13 +190,13 @@ const AllPropertiesCards = ({ loggedIn }) => {
    }
 
    return (
-      <div style={{ backgroundColor: 'var(--bg-primary)', minHeight: '100vh', padding: '20px 0' }}>
+      <div style={{ backgroundColor: '#f5f5f5', minHeight: '100vh', padding: '20px 0' }}>
          <Container fluid>
-            {/* FILTER SECTION – raised card, white background */}
+            {/* FILTER SECTION */}
             <div
                className="mb-5 p-4"
                style={{
-                  backgroundColor: 'var(--bg-secondary)',
+                  backgroundColor: '#ffffff',
                   borderRadius: '20px',
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
                   border: '1px solid #eaeaea',
@@ -109,7 +209,7 @@ const AllPropertiesCards = ({ loggedIn }) => {
                   <Col md={4}>
                      <Form.Label className="text-secondary small fw-semibold">📍 Location</Form.Label>
                      <InputGroup>
-                        <InputGroup.Text style={{ background: 'var(--bg-secondary)', borderRight: 'none' }}>
+                        <InputGroup.Text style={{ background: '#fff', borderRight: 'none' }}>
                            <i className="ti ti-map-pin" />
                         </InputGroup.Text>
                         <Form.Control
@@ -156,143 +256,104 @@ const AllPropertiesCards = ({ loggedIn }) => {
 
             {/* Results summary */}
             <div className="d-flex justify-content-between align-items-center mb-3">
-               <h5 style={{ color: '#1e2a3a', fontWeight: 500 }}>All properties</h5>
+               <h5 style={{ color: '#1e2a3a', fontWeight: 500 }}>Available properties</h5>
                <span className="text-muted small">
                   {filteredProperties.length} listing{filteredProperties.length !== 1 ? 's' : ''} found
                </span>
             </div>
 
-            {/* PROPERTY GRID – 3 columns */}
+            {/* PROPERTY GRID */}
             <Row xs={1} md={2} lg={3} className="g-4">
                {filteredProperties.length > 0 ? (
-                  filteredProperties.map((property) => {
-                     const isTaken = property.isAvailable !== 'Available';
-                     return (
-                        <Col key={property._id}>
-                           <Card
-                              className="h-100 border-0 rounded-4 overflow-hidden"
-                              style={{
-                                 transition: 'transform 0.2s, box-shadow 0.2s',
-                                 boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-                                 opacity: isTaken ? 0.75 : 1, // slightly dim taken properties
-                              }}
-                              onMouseEnter={(e) => {
-                                 if (!isTaken) {
-                                    e.currentTarget.style.transform = 'translateY(-6px)';
-                                    e.currentTarget.style.boxShadow = '0 12px 20px rgba(0,0,0,0.1)';
-                                 }
-                              }}
-                              onMouseLeave={(e) => {
-                                 e.currentTarget.style.transform = 'translateY(0)';
-                                 e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
-                              }}
-                           >
-                              {property.propertyImage && property.propertyImage.length > 0 ? (
-                                 <div style={{ position: 'relative' }}>
-                                    <Card.Img
-                                       variant="top"
-                                       src={`${process.env.REACT_APP_API_URL.replace('/api', '')}${property.propertyImage[0].path}`}
-                                       style={{ height: '200px', objectFit: 'cover' }}
-                                       alt={property.propertyAddress}
-                                    />
-                                    {isTaken && (
-                                       <div style={{
-                                          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-                                          background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                       }}>
-                                          <span style={{
-                                             background: '#e74c3c', color: 'var(--bg-secondary)', padding: '8px 24px',
-                                             borderRadius: 4, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase',
-                                             transform: 'rotate(-15deg)', border: '2px solid #fff'
-                                          }}>TAKEN</span>
-                                       </div>
-                                    )}
-                                 </div>
-                              ) : (
-                                 <div style={{ height: '200px', background: '#e9ecef', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                                    <FaHome size={40} color="#adb5bd" />
-                                    {isTaken && (
-                                       <div style={{
-                                          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-                                          background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                       }}>
-                                          <span style={{
-                                             background: '#e74c3c', color: 'var(--bg-secondary)', padding: '8px 24px',
-                                             borderRadius: 4, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase',
-                                             transform: 'rotate(-15deg)', border: '2px solid #fff'
-                                          }}>TAKEN</span>
-                                       </div>
-                                    )}
-                                 </div>
-                              )}
-                              <Card.Body>
-                                 <div className="d-flex justify-content-between align-items-start mb-2">
-                                    <Card.Title className="mb-0" style={{ fontSize: '1.1rem', fontWeight: 600 }}>
-                                       {property.propertyAddress.split(',')[0]}
-                                    </Card.Title>
-                                    {!isTaken ? (
-                                       <Badge bg="success" pill>Available</Badge>
-                                    ) : (
-                                       <Badge bg="danger" pill>Taken</Badge>
-                                    )}
-                                 </div>
-                                 <div className="mb-2">
-                                    <span className="badge bg-light text-dark me-1">{property.propertyType}</span>
-                                    <span className="badge bg-light text-dark">
-                                       {property.propertyAdType === 'rent' ? 'For rent' : 'For sale'}
-                                    </span>
-                                 </div>
-                                 <Card.Text className="text-muted small">
-                                    <i className="ti ti-map-pin me-1" /> {property.propertyAddress}
-                                    <br />
-                                    <strong>Property ID:</strong> <span style={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>{property._id}</span>
-                                    <br />
-                                    <strong>Price:</strong> Br {property.propertyAmt?.toLocaleString()}
-                                    {loggedIn && (
-                                       <>
-                                          <br />
-                                          <strong>Contact:</strong> {property.ownerContact}
-                                       </>
-                                    )}
-                                 </Card.Text>
-                              </Card.Body>
-                              <Card.Footer className="bg-white border-top-0 pb-3 pt-0">
-                                 {!loggedIn ? (
-                                    <Link to="/login">
-                                       <Button variant="outline-dark" size="sm" className="w-100">
-                                          Get info
-                                       </Button>
-                                    </Link>
-                                 ) : (
-                                    <Button
-                                       onClick={() => handleShow(property._id)}
-                                       variant="dark"
-                                       size="sm"
-                                       className="w-100"
-                                       disabled={isTaken}
-                                    >
-                                       {isTaken ? 'Currently Unavailable' : 'Request booking'}
-                                    </Button>
+                  filteredProperties.map((property) => (
+                     <Col key={property._id}>
+                        <Card
+                           className="h-100 border-0 rounded-4 overflow-hidden"
+                           style={{
+                              transition: 'transform 0.2s, box-shadow 0.2s',
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                           }}
+                           onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = 'translateY(-6px)';
+                              e.currentTarget.style.boxShadow = '0 12px 20px rgba(0,0,0,0.1)';
+                           }}
+                           onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = 'translateY(0)';
+                              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+                           }}
+                        >
+                           {property.propertyImage && property.propertyImage.length > 0 ? (
+                              <Card.Img
+                                 variant="top"
+                                 src={`${process.env.REACT_APP_API_URL.replace('/api', '')}${property.propertyImage[0].path}`}
+                                 style={{ height: '200px', objectFit: 'cover' }}
+                                 alt={property.propertyAddress}
+                              />
+                           ) : (
+                              <div style={{ height: '200px', background: '#e9ecef', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                 <FaHome size={40} color="#adb5bd" />
+                              </div>
+                           )}
+                           <Card.Body>
+                              <div className="d-flex justify-content-between align-items-start mb-2">
+                                 <Card.Title className="mb-0" style={{ fontSize: '1.1rem', fontWeight: 600 }}>
+                                    {property.propertyAddress.split(',')[0]}
+                                 </Card.Title>
+                                 <Badge bg="success" pill>Available</Badge>
+                              </div>
+                              <div className="mb-2">
+                                 <span className="badge bg-light text-dark me-1">{property.propertyType}</span>
+                                 <span className="badge bg-light text-dark">
+                                    {property.propertyAdType === 'rent' ? 'For rent' : 'For sale'}
+                                 </span>
+                              </div>
+                              <Card.Text className="text-muted small">
+                                 <i className="ti ti-map-pin me-1" /> {property.propertyAddress}
+                                 <br />
+                                 <strong>Price:</strong> Br {property.propertyAmt.toLocaleString()}
+                                 {loggedIn && (
+                                    <>
+                                       <br />
+                                       <strong>Contact:</strong> {property.ownerContact}
+                                    </>
                                  )}
-                              </Card.Footer>
-                           </Card>
-                        </Col>
-                     );
-                  })
+                              </Card.Text>
+                           </Card.Body>
+                           <Card.Footer className="bg-white border-top-0 pb-3 pt-0">
+                              {!loggedIn ? (
+                                 <Link to="/login">
+                                    <Button variant="outline-dark" size="sm" className="w-100">
+                                       Get info
+                                    </Button>
+                                 </Link>
+                              ) : (
+                                 <Button
+                                    onClick={() => handleShow(property._id)}
+                                    variant="dark"
+                                    size="sm"
+                                    className="w-100"
+                                 >
+                                    Request booking
+                                 </Button>
+                              )}
+                           </Card.Footer>
+                        </Card>
+                     </Col>
+                  ))
                ) : (
                   <Col>
                      <div className="alert alert-light text-center p-5" role="alert">
-                        🏡 No properties match your filters. Try different criteria.
+                        🏡 No available properties match your filters. Try different criteria.
                      </div>
                   </Col>
                )}
             </Row>
          </Container>
 
-        {/* MODAL – full details + booking form */}
-        <Modal show={show} onHide={handleClose} size="lg" centered>
+        {/* MODAL with ID upload */}
+        <Modal show={show} onHide={handleClose} size="lg" centered backdrop="static">
           <Modal.Header closeButton>
-             <Modal.Title>Property details</Modal.Title>
+             <Modal.Title>Property details & booking request</Modal.Title>
           </Modal.Header>
           <Modal.Body>
              {propertyOpen && allProperties.find((p) => p._id === propertyOpen) && (
@@ -305,11 +366,12 @@ const AllPropertiesCards = ({ loggedIn }) => {
                                <Carousel activeIndex={index} onSelect={handleSelect}>
                                   {property.propertyImage.map((image, idx) => (
                                      <Carousel.Item key={idx}>
-                                     <img
-                        src={`${process.env.REACT_APP_API_URL.replace('/api', '')}${image.path}`} alt={`Property view ${idx + 1}`}
-                        className="d-block w-100"
-                        style={{ maxHeight: '400px', objectFit: 'cover', borderRadius: '8px' }}
-                      />
+                                        <img
+                                           src={`${process.env.REACT_APP_API_URL.replace('/api', '')}${image.path}`}
+                                           alt={`Property view ${idx + 1}`}
+                                           className="d-block w-100"
+                                           style={{ maxHeight: '400px', objectFit: 'cover', borderRadius: '8px' }}
+                                        />
                                      </Carousel.Item>
                                   ))}
                                </Carousel>
@@ -317,19 +379,17 @@ const AllPropertiesCards = ({ loggedIn }) => {
                             <div className="mt-3">
                                <h5>{property.propertyAdType === 'rent' ? '🏠 For rent' : '💰 For sale'} – {property.propertyType}</h5>
                                <p><strong>📍 Location:</strong> {property.propertyAddress}</p>
-                               <p><strong>Property ID:</strong> <span style={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>{property._id}</span></p>
-                               <p><strong>💰 Price:</strong> Br {property.propertyAmt?.toLocaleString()}</p>
+                               <p><strong>💰 Price:</strong> Br {property.propertyAmt.toLocaleString()}</p>
                                <p><strong>📞 Owner contact:</strong> {property.ownerContact}</p>
                                <p><strong>✅ Availability:</strong> {property.isAvailable}</p>
                                <p><strong>ℹ️ Additional info:</strong> {property.additionalInfo}</p>
                             </div>
-                            <Form onSubmit={(e) => {
-                               e.preventDefault();
-                               handleBooking('pending', property._id, property.ownerId);
-                            }}>
+                            <hr />
+                            <h6>📄 Booking request form</h6>
+                            <Form>
                                <Row className="mb-3">
                                   <Form.Group as={Col} md="6">
-                                     <Form.Label>Full name</Form.Label>
+                                     <Form.Label>Full name *</Form.Label>
                                      <Form.Control
                                         type="text"
                                         placeholder="Full name"
@@ -337,21 +397,71 @@ const AllPropertiesCards = ({ loggedIn }) => {
                                         name="fullName"
                                         value={userDetails.fullName}
                                         onChange={handleChange}
+                                        isInvalid={!!errors.fullName}
                                      />
+                                     <Form.Control.Feedback type="invalid">
+                                        {errors.fullName}
+                                     </Form.Control.Feedback>
                                   </Form.Group>
                                   <Form.Group as={Col} md="6">
-                                     <Form.Label>Phone number</Form.Label>
+                                     <Form.Label>Phone number *</Form.Label>
                                      <Form.Control
-                                        type="number"
+                                        type="tel"
                                         placeholder="Phone number"
                                         required
                                         name="phone"
                                         value={userDetails.phone}
                                         onChange={handleChange}
+                                        inputMode="numeric"
+                                        pattern="\d*"
+                                        isInvalid={!!errors.phone}
                                      />
+                                     <Form.Control.Feedback type="invalid">
+                                        {errors.phone}
+                                     </Form.Control.Feedback>
+                                     <Form.Text className="text-muted">
+                                        Must be 10 digits, starting with 07 or 09 (numbers only)
+                                     </Form.Text>
                                   </Form.Group>
                                </Row>
-                               <Button type="submit" variant="primary">Book property</Button>
+                               <Form.Group className="mb-3">
+                                  <Form.Label>Government ID (Kebele, Passport, etc.) *</Form.Label>
+                                  <Form.Control
+                                     type="file"
+                                     accept="image/jpeg,image/png,image/jpg,application/pdf"
+                                     onChange={handleFileChange}
+                                     required
+                                     isInvalid={!!errors.governmentId}
+                                  />
+                                  <Form.Control.Feedback type="invalid">
+                                    {errors.governmentId}
+                                  </Form.Control.Feedback>
+                                  <Form.Text className="text-muted">
+                                     Upload a clear photo or scan of your ID. Max 5MB (JPG, PNG, PDF).
+                                  </Form.Text>
+
+gerawork, [6/6/2026 12:03 AM]
+{governmentIdFile && (
+                                     <div className="mt-2 small text-success">
+                                        ✅ Selected: {governmentIdFile.name}
+                                     </div>
+                                  )}
+                               </Form.Group>
+                               <Button
+                                  type="button"
+                                  variant="primary"
+                                  onClick={() => handleBooking('pending', property._id, property.ownerId)}
+                                  disabled={submitting}
+                               >
+                                  {submitting ? (
+                                     <>
+                                        <Spinner as="span" animation="border" size="sm" className="me-2" />
+                                        Submitting...
+                                     </>
+                                  ) : (
+                                     'Submit booking request'
+                                  )}
+                               </Button>
                             </Form>
                          </>
                       );

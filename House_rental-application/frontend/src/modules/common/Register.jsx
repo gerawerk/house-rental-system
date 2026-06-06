@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { message } from 'antd';
+import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import api from '../../services/api';
 
 const Register = () => {
@@ -11,18 +12,100 @@ const Register = () => {
     password: '',
     type: '',
   });
+  const [passwordVisible, setPasswordVisible] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setData({ ...data, [name]: value });
   };
 
+  const togglePasswordVisibility = () => {
+    setPasswordVisible(!passwordVisible);
+  };
+
+  // Validation functions
+  const validateName = (name) => {
+    if (!name || name.trim() === '') {
+      return 'Full Name is required.';
+    }
+    if (name.trim().length < 3) {
+      return 'Full Name must contain at least 3 letters.';
+    }
+    // Only letters and spaces allowed
+    const nameRegex = /^[A-Za-z\s]+$/;
+    if (!nameRegex.test(name.trim())) {
+      return 'Full Name can only contain letters and spaces.';
+    }
+    return null;
+  };
+
+  const validateEmail = (email) => {
+    if (!email || email.trim() === '') {
+      return 'Email is required.';
+    }
+    // Basic email validation regex
+    const emailRegex = /^[^\s@]+@([^\s@.,]+\.)+[^\s@.,]{2,}$/;
+    if (!emailRegex.test(email)) {
+      return 'Please enter a valid email address.';
+    }
+    return null;
+  };
+
+  const validatePassword = (password) => {
+    if (!password) {
+      return 'Password is required.';
+    }
+    if (password.length < 8) {
+      return 'Password must be at least 8 characters long.';
+    }
+    if (!/[A-Z]/.test(password)) {
+      return 'Password must contain at least one uppercase letter.';
+    }
+    if (!/[a-z]/.test(password)) {
+      return 'Password must contain at least one lowercase letter.';
+    }
+    if (!/[0-9]/.test(password)) {
+      return 'Password must contain at least one number.';
+    }
+    return null;
+  };
+
+  const validateUserType = (type) => {
+    if (!type) {
+      return 'Please select a user type.';
+    }
+    return null;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!data?.name || !data?.email || !data?.password || !data?.type) {
-      message.error('Please fill all fields');
+
+    // Run all validations
+    const nameError = validateName(data.name);
+    if (nameError) {
+      message.error(nameError);
       return;
     }
+
+    const emailError = validateEmail(data.email);
+    if (emailError) {
+      message.error(emailError);
+      return;
+    }
+
+    const passwordError = validatePassword(data.password);
+    if (passwordError) {
+      message.error(passwordError);
+      return;
+    }
+
+    const typeError = validateUserType(data.type);
+    if (typeError) {
+      message.error(typeError);
+      return;
+    }
+
+    // API call
     api.post('/user/register', data)
       .then((response) => {
         if (response.data.success) {
@@ -90,15 +173,23 @@ const Register = () => {
             </div>
             <div style={styles.inputGroup}>
               <label style={styles.label}>Password</label>
-              <input
-                type="password"
-                name="password"
-                value={data.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                required
-                style={styles.input}
-              />
+              <div style={styles.passwordWrapper}>
+                <input
+                  type={passwordVisible ? 'text' : 'password'}
+                  name="password"
+                  value={data.password}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  required
+                  style={styles.passwordInput}
+                />
+                <span onClick={togglePasswordVisibility} style={styles.passwordToggle}>
+                  {passwordVisible ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+                </span>
+              </div>
+              <div style={styles.helperText}>
+                Must contain 8+ characters, uppercase, lowercase and a number
+              </div>
             </div>
             <div style={styles.inputGroup}>
               <label style={styles.label}>I am a</label>
@@ -228,6 +319,38 @@ const styles = {
     outline: 'none',
     transition: 'border 0.2s',
     fontFamily: "'DM Sans', sans-serif",
+  },
+  passwordWrapper: {
+    position: 'relative',
+    width: '100%',
+  },
+  passwordInput: {
+    width: '100%',
+    padding: '12px 40px 12px 16px', // Extra right padding for icon
+    fontSize: 15,
+    border: '1px solid #e8e4dc',
+    borderRadius: 12,
+    outline: 'none',
+    transition: 'border 0.2s',
+    fontFamily: "'DM Sans', sans-serif",
+    boxSizing: 'border-box',
+  },
+  passwordToggle: {
+    position: 'absolute',
+    right: '14px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    cursor: 'pointer',
+    color: '#7a7568',
+    fontSize: '18px',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  helperText: {
+    fontSize: '12px',
+    color: '#7a7568',
+    marginTop: '6px',
+    marginLeft: '4px',
   },
   select: {
     width: '100%',
