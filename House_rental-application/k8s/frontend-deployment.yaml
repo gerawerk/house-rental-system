@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: house-rental
+  labels:
+    app: frontend
+spec:
+  replicas: 2                 # keep in sync with your scaling plan
+  selector:
+    matchLabels:
+      app: frontend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: kind-worker-2
+      containers:
+        - name: frontend
+          # 👉 Pin the version; update via CI when you push a new release
+          image: gerawerk/house-frontend:v2.0
+          ports:
+            - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: house-rental-config
+            - secretRef:
+                name: house-rental-secret
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"

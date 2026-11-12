@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: house-rental
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gerawerk/house-rental-system.git
+    targetRevision: main
+    path: House_rental-application/k8s
+    directory:
+      recurse: false
+      exclude: "{kind-cluster.yaml,argocd-application.yaml}"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: house-rental
+  syncPolicy:
+    automated:
+      prune: true      # Automatically remove resources deleted from Git
+      selfHeal: true   # Automatically revert manual cluster modifications (drift correction)
+    syncOptions:
+      - CreateNamespace=true
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas

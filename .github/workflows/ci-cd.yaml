@@ -1,0 +1,97 @@
+name: CI/CD Pipeline & GitOps Trigger
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'House_rental-application/backend/**'
+      - 'House_rental-application/frontend/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-push:
+    name: Build Images & Update K8s Manifests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set Image Tag
+        id: vars
+        run: echo "SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # ----------------------------------------------------
+      # 1. Build and Push Backend Image
+      # ----------------------------------------------------
+      - name: Build and Push Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./House_rental-application/backend
+          file: ./House_rental-application/backend/dockerfile
+          push: true
+          tags: |
+            gerawerk/house-backend:${{ steps.vars.outputs.SHORT_SHA }}
+            gerawerk/house-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # ----------------------------------------------------
+      # 2. Build and Push Frontend Image
+      # ----------------------------------------------------
+      - name: Build and Push Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./House_rental-application/frontend
+          file: ./House_rental-application/frontend/Dockerfile
+          push: true
+          tags: |
+            gerawerk/house-frontend:${{ steps.vars.outputs.SHORT_SHA }}
+            gerawerk/house-frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # ----------------------------------------------------
+      # 3. GitOps Hand-off: Update Kubernetes Manifests
+      # ----------------------------------------------------
+      - name: Update Image Tags in Kubernetes Manifests
+        run: |
+          TAG="${{ steps.vars.outputs.SHORT_SHA }}"
+          
+          # Update backend deployment image tag
+          sed -i -E "s|(image:\s*gerawerk/house-backend:).*|\1${TAG}|g" House_rental-application/k8s/backend-deployment.yaml
+          
+          # Update frontend deployment image tag
+          sed -i -E "s|(image:\s*gerawerk/house-frontend:).*|\1${TAG}|g" House_rental-application/k8s/frontend-deployment.yaml
+
+      # ----------------------------------------------------
+      # 4. Commit and Push back to Git (Triggers Argo CD Sync)
+      # ----------------------------------------------------
+      - name: Commit & Push Updated Manifests
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add House_rental-application/k8s/backend-deployment.yaml House_rental-application/k8s/frontend-deployment.yaml
+          
+          if git diff --staged --quiet; then
+            echo "No changes in Kubernetes manifests to commit."
+          else
+            git commit -m "chore(gitops): bump deployment images to ${TAG} [skip ci]"
+            git push origin main
+          fi

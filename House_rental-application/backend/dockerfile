@@ -1,0 +1,38 @@
+# ==========================================
+# Stage 1: Dependency Resolution (The Workshop)
+# ==========================================
+FROM node:20-alpine AS dependencies
+WORKDIR /app
+
+# Copy package files first for layer caching
+COPY package*.json ./
+
+# Install only production dependencies cleanly
+RUN npm ci --omit=dev
+
+# ==========================================
+# Stage 2: Production Minimal Runtime (The Ship)
+# ==========================================
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=5001
+
+# Create uploads directory and set permissions for non-root user
+RUN mkdir -p /app/uploads && chown -R node:node /app
+
+# Copy installed production dependencies from Stage 1
+COPY --from=dependencies --chown=node:node /app/node_modules ./node_modules
+
+# Copy application source code with non-root ownership
+COPY --chown=node:node . .
+
+# Switch to unprivileged 'node' user (Security Best Practice)
+USER node
+
+# Expose backend API port
+EXPOSE 5001
+
+# Start server using node directly (not nodemon in production)
+CMD ["node", "index.js"]

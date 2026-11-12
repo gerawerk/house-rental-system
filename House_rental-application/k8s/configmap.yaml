@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: house-rental-config
+  namespace: house-rental
+data:
+  APP_PORT: "5001"
+  LOG_LEVEL: "info"
